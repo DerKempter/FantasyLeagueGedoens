@@ -277,7 +277,10 @@ def get_points_from_match_week_players(date_string):
     score_per_player = {}
     for team_combo in player_scores:
         player1 = {team_combo[0]: team_combo[1]}
-        score_per_player.update(player1)
+        if team_combo[0] in score_per_player:
+            score_per_player[team_combo[0]] = score_per_player.get(team_combo[0]) + team_combo[1]
+        else:
+            score_per_player.update(player1)
     return score_per_player
 
 
@@ -307,7 +310,10 @@ def get_points_from_match_week_teams(date_string):
     score_per_team = {}
     for team_combo in team_scores:
         team1 = {team_combo[1]: team_combo[0]}
-        score_per_team.update(team1)
+        if team_combo[0] in score_per_team:
+            score_per_team[team_combo[0]] = score_per_team.get(team_combo[0]) + team_combo[1]
+        else:
+            score_per_team.update(team1)
     return score_per_team
 
 
