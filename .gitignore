@@ -1,7 +1,9 @@
 venv
 .idea
-
+__pycache__
 build
+dist
+
 
 service_account.json
 test.py
