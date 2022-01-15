@@ -20,7 +20,11 @@ def open_spreadsheet():
     return fantasy_hub, lec_players, lcs_players
 
 
-def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: str = None, team2: str = None, get_players = True, get_teams = True):
+def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: str = None, team2: str = None,
+                                     get_players=True, get_teams=True):
+    if not get_players and not get_teams:
+        print("updating nothing")
+        return "Updating nothing"
     date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
 
     site = mwclient.Site('lol.fandom.com', path='/')
@@ -30,11 +34,12 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
                                        limit="max",
                                        tables="ScoreboardGames=SG, ScoreboardPlayers=SP",
                                        join_on="SG.GameId=SP.GameId",
-                                       fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
-                                              "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, SG.Team1Towers, "
-                                              "SG.Team2Towers, SG.RiotPlatformGameId, SP.Link, SP.Team, SP.Champion, "
-                                              "SP.SummonerSpells, SP.KeystoneMastery, SP.KeystoneRune, "
-                                              "SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
+                                       fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, "
+                                              "SG.Patch, SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, "
+                                              "SG.Team2Barons, SG.Team1Towers, SG.Team2Towers, SG.RiotPlatformGameId, "
+                                              "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, "
+                                              "SP.KeystoneRune, SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, "
+                                              "SP.Deaths, SP.CS",
                                        where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
                                              f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = '{tournament}' "
                                        )
@@ -45,8 +50,8 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
                                      limit="max",
                                      tables="ScoreboardGames=SG",
                                      fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
-                                            "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, SG.Team1Towers, "
-                                            "SG.Team2Towers, SG.RiotPlatformGameId, SG.RiotGameId",
+                                            "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, "
+                                            "SG.Team1Towers, SG.Team2Towers, SG.RiotPlatformGameId, SG.RiotGameId",
                                      where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
                                            f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = '{tournament}'"
                                      )
@@ -58,9 +63,10 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
                                        limit="10",
                                        tables="ScoreboardGames=SG, ScoreboardPlayers=SP",
                                        join_on="SG.GameId=SP.GameId",
-                                       fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
-                                              "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, SP.KeystoneRune, "
-                                              "SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
+                                       fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, "
+                                              "SG.Patch, SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, "
+                                              "SP.KeystoneMastery, SP.KeystoneRune, SP.Role, SP.UniqueGame, "
+                                              "SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
                                        where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
                                              f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = '{tournament}' "
                                              f"AND ((SG.Team1 = '{team1}' AND SG.Team2 = '{team2}') "
@@ -73,10 +79,11 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
                                      limit="max",
                                      tables="ScoreboardGames=SG",
                                      fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
-                                            "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, SG.Team1Towers, "
-                                            "SG.Team2Towers, SG.RiotPlatformGameId, SG.RiotGameId",
+                                            "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, "
+                                            "SG.Team1Towers, SG.Team2Towers, SG.RiotPlatformGameId, SG.RiotGameId",
                                      where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
-                                           f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = '{tournament}'"
+                                           f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = "
+                                           f"'{tournament}' "
                                            f"AND ((SG.Team1 = '{team1}' AND SG.Team2 = '{team2}') "
                                            f"OR (SG.Team1 = '{team2}' AND SG.Team2 = '{team1}'))"
                                      )
@@ -106,6 +113,7 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
 
     if len(score_to_update) > 0:
         update_spreadsheet_player_points(score_to_update, tournament)
+        return f"updated {score_to_update}"
 
 
 def calc_points(game_dictionary, category: str):
@@ -169,7 +177,10 @@ def update_spreadsheet_player_points(scores_to_update: [], league: str):
         for score, player_string in scores_to_update:
             for player in lec_players_list:
                 if player[0] == player_string:
-                    player[1] = float(player[1]) + score
+                    if type(player[1]) == str:
+                        player[1] = float(player[1].replace(',', '.')) + score
+                    else:
+                        player[1] = float(player[1]) + score
                 elif type(player[1]) == str:
                     player[1] = float(player[1].replace(',', '.'))
         lec_players.update(spread_string, lec_players_list)
@@ -179,7 +190,10 @@ def update_spreadsheet_player_points(scores_to_update: [], league: str):
         for score, player_string in scores_to_update:
             for player in lcs_players_list:
                 if player[0] == player_string:
-                    player[1] = float(player[1]) + score
+                    if type(player[1]) == str:
+                        player[1] = float(player[1].replace(',', '.')) + score
+                    else:
+                        player[1] = float(player[1]) + score
                 elif type(player[1]) == str:
                     player[1] = float(player[1].replace(',', '.'))
         lcs_players.update(spread_string, lcs_players_list)
@@ -312,7 +326,6 @@ def get_game_stats(date_string: str, tournament: str):
                         )
     data = response.get('cargoquery')
     print(data)
-
 
 # get_game_stats_and_update_spread("2022-01-15", "LCS 2022 Lock In", get_teams=True, get_players=True)
 
