@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 class MyWindow(QMainWindow):
     lec_teams = ['Astralis', 'Excel Esports', 'Fnatic', 'G2 Esports', 'MAD Lions', 'Misfits Gaming',
                  'Rogue (European Team)', 'SK Gaming', 'Team BDS', 'Team Vitality']
-    lcs_teams = ['100 Thieves', 'CLG', 'Cloud9', 'Dignitas', 'Evil Geniuses', 'FlyQuest', 'Golden Guardians',
+    lcs_teams = ['100 Thieves', 'Counter Logic Gaming', 'Cloud9', 'Dignitas', 'Evil Geniuses', 'FlyQuest', 'Golden Guardians',
                  'Immortals', 'Team Liquid', 'TSM']
 
     def __init__(self):
