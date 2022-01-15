@@ -1,7 +1,6 @@
 import sys
 import main
 
-
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
@@ -9,6 +8,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 class MyWindow(QMainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
+        self.matchup_dates = None
+        self.weeks = None
         self.week_selector = None
         self.setGeometry(0, 0, 720, 720)
         self.setWindowTitle("FantasyLeague")
@@ -49,6 +50,7 @@ class MyWindow(QMainWindow):
             weeks.append(week_string)
             week_dates.append(week_date)
         return weeks, week_dates
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
