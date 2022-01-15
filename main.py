@@ -170,8 +170,8 @@ def get_points_from_match_week(date_string):
                                "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, SP.KeystoneRune, "
                                "SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
                         where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
-                              f"'{str(date + dt.timedelta(5))} 00:00:00' AND SG.Tournament = 'LEC 2022 Spring' OR "
-                              f"SG.Tournament = 'LCS 2022 Spring'"
+                              f"'{str(date + dt.timedelta(5))} 00:00:00' AND SG.Tournament = 'LCS 2022 Spring' OR "
+                              f"SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In'"
                         )
     data = response.get('cargoquery')
     player_scores = []
