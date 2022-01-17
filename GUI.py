@@ -9,8 +9,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 class MyWindow(QMainWindow):
     lec_teams = ['Astralis', 'Excel Esports', 'Fnatic', 'G2 Esports', 'MAD Lions', 'Misfits Gaming',
                  'Rogue (European Team)', 'SK Gaming', 'Team BDS', 'Team Vitality']
-    lcs_teams = ['100 Thieves', 'Counter Logic Gaming', 'Cloud9', 'Dignitas', 'Evil Geniuses', 'FlyQuest', 'Golden Guardians',
-                 'Immortals', 'Team Liquid', 'TSM']
+    lcs_teams = ['100 Thieves', 'Counter Logic Gaming', 'Cloud9', 'Dignitas', 'Evil Geniuses.NA', 'FlyQuest',
+                 'Golden Guardians', 'Immortals', 'Team Liquid', 'TSM']
 
     def __init__(self):
         super(MyWindow, self).__init__()
@@ -26,7 +26,7 @@ class MyWindow(QMainWindow):
         self.setWindowTitle("FantasyLeague")
         self.update_matchup_points_button = None
         self.week_label = None
-        self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
+        self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = main.open_spreadsheet(use_prev=True)
         self.initUi()
 
     def initUi(self):
@@ -113,7 +113,9 @@ class MyWindow(QMainWindow):
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
         print(week, week_index, self.matchup_dates[week_index])
-        main.update_points_for_matchup(self.matchup_dates[week_index], week)
+        response = main.update_points_for_matchup(self.matchup_dates[week_index], week)
+        self.update_table_points_label.setText(response)
+        self.update_table_points_label.adjustSize()
 
     def update_table_points(self):
         week = self.week_selector.currentText()
@@ -128,7 +130,7 @@ class MyWindow(QMainWindow):
         response = main.get_game_stats_and_update_spread(adjusted_week_date, tournament,
                                               self.lec_lcs_team_selector_team_1.currentText(),
                                               self.lec_lcs_team_selector_team_2.currentText(),
-                                              self.player_cb.isChecked(), self.team_cb.isChecked())
+                                              self.player_cb.isChecked(), self.team_cb.isChecked(), self.prev_matches)
         self.update_table_points_label.setText(response)
         self.update_table_points_label.adjustSize()
 

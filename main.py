@@ -9,23 +9,30 @@ def inc_letter(letter: chr, increment_int) -> chr:
     return chr(ord(letter) + increment_int)
 
 
-def open_spreadsheet():
+def open_spreadsheet(use_prev=False, only_use_prev=False):
     sa = gspread.service_account('service_account.json')
     sh = sa.open(SPREADSHEET_NAME)
 
     fantasy_hub = sh.worksheet("Fantasy-HUB")
     lec_players = sh.worksheet("LEC-Spieler")
     lcs_players = sh.worksheet("LCS-Spieler")
-
+    if use_prev:
+        prev_matches = sh.worksheet("Prev Matches")
+        if only_use_prev:
+            return prev_matches
+        return fantasy_hub, lec_players, lcs_players, prev_matches
     return fantasy_hub, lec_players, lcs_players
 
 
 def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: str = None, team2: str = None,
-                                     get_players=True, get_teams=True):
+                                     get_players=True, get_teams=True, prev_matches_ws=None):
     if not get_players and not get_teams:
         print("updating nothing")
         return "Updating nothing"
-    date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
+    hour_string = "00:00:00"
+    date_arr = [date_string, hour_string]
+    date_time_string = ' '.join(date_arr)
+    date = dt.datetime.strptime(convert_to_berlin_time(date_time_string), "%Y-%m-%d %H:%M:%S")
 
     site = mwclient.Site('lol.fandom.com', path='/')
     if team1 is None or team2 is None:
@@ -40,8 +47,8 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
                                               "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, "
                                               "SP.KeystoneRune, SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, "
                                               "SP.Deaths, SP.CS",
-                                       where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
-                                             f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = '{tournament}' "
+                                       where=f"SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
+                                             f"'{str(date + dt.timedelta(1))}' AND SG.Tournament = '{tournament}' "
                                        )
         else:
             player_response = None
@@ -52,8 +59,8 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
                                      fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
                                             "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, "
                                             "SG.Team1Towers, SG.Team2Towers, SG.RiotPlatformGameId, SG.RiotGameId",
-                                     where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
-                                           f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = '{tournament}'"
+                                     where=f"SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
+                                           f"'{str(date + dt.timedelta(hours=24))}' AND SG.Tournament = '{tournament}'"
                                      )
         else:
             team_response = None
@@ -67,8 +74,8 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
                                               "SG.Patch, SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, "
                                               "SP.KeystoneMastery, SP.KeystoneRune, SP.Role, SP.UniqueGame, "
                                               "SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
-                                       where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
-                                             f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = '{tournament}' "
+                                       where=f"SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
+                                             f"'{str(date + dt.timedelta(hours=24))}' AND SG.Tournament = '{tournament}' "
                                              f"AND ((SG.Team1 = '{team1}' AND SG.Team2 = '{team2}') "
                                              f"OR (SG.Team1 = '{team2}' AND SG.Team2 = '{team1}'))"
                                        )
@@ -81,8 +88,8 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
                                      fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
                                             "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, "
                                             "SG.Team1Towers, SG.Team2Towers, SG.RiotPlatformGameId, SG.RiotGameId",
-                                     where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
-                                           f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = "
+                                     where=f"SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
+                                           f"'{str(date + dt.timedelta(hours=24))}' AND SG.Tournament = "
                                            f"'{tournament}' "
                                            f"AND ((SG.Team1 = '{team1}' AND SG.Team2 = '{team2}') "
                                            f"OR (SG.Team1 = '{team2}' AND SG.Team2 = '{team1}'))"
@@ -91,29 +98,58 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
             team_response = None
 
     score_to_update = []
+    games_to_add_to_sheet = []
+    if prev_matches_ws is None:
+        prev_matches_ws = open_spreadsheet(True, True)
 
     if player_response is not None:
         player_data = player_response.get('cargoquery')
+        skipper = 0
         for game_dict_key in player_data:
+            if skipper > 0:
+                skipper -= 1
+                continue
             game_dict = game_dict_key.get('title')
+
+            if check_if_game_was_updated_already(game_dict, prev_matches_ws):
+                skipper = 9
+                continue
 
             points, player = calc_points(game_dict, 'player')[0]
             score_to_update.append((points, player))
+            game_to_add_to_sheet = [game_dict.get('Team1'),
+                                    game_dict.get('Team2'),
+                                    game_dict.get('DateTime UTC').split(' ')[0]]
+            if game_to_add_to_sheet not in games_to_add_to_sheet:
+                games_to_add_to_sheet.append(game_to_add_to_sheet)
     print(score_to_update)
+    print(games_to_add_to_sheet)
 
     if team_response is not None:
         team_data = team_response.get('cargoquery')
         for game_dict_key in team_data:
             game_dict = game_dict_key.get('title')
 
+            if check_if_game_was_updated_already(game_dict, prev_matches_ws):
+                continue
+
             team_points = calc_points(game_dict, 'team')
             for points in team_points:
                 score_to_update.append(points)
+            game_to_add_to_sheet = [game_dict.get('Team1'),
+                                    game_dict.get('Team2'),
+                                    game_dict.get('DateTime UTC').split(' ')[0]]
+            if game_to_add_to_sheet not in games_to_add_to_sheet:
+                games_to_add_to_sheet.append(game_to_add_to_sheet)
     print(score_to_update)
+    print(games_to_add_to_sheet)
 
-    if len(score_to_update) > 0:
+    if len(score_to_update) > 0 and len(games_to_add_to_sheet) > 0:
         update_spreadsheet_player_points(score_to_update, tournament)
+        add_match_to_prev_matches(matches_to_add=games_to_add_to_sheet)
         return f"updated {score_to_update}"
+    else:
+        return f"Either didn't find any games or all games found through given arguments have already been updated."
 
 
 def calc_points(game_dictionary, category: str):
@@ -231,6 +267,7 @@ def update_points_for_matchup(match_week_date, sel_week: str):
     # print(sums)
     weeks = [("L", "18"), ("L", "22"), ("L", "26"), ("L", "30"), ("P", "18")]
     sums_with_names = []
+    match_table = []
     for coord, score in sums:
         name = fantasy_hub.acell(coord).value
         sums_with_names.append((name, score))
@@ -249,10 +286,14 @@ def update_points_for_matchup(match_week_date, sel_week: str):
             # print(match_table)
             fantasy_hub.update(f"{start_cell}:{end_cell}", match_table)
             break
+    return f"matchtable for Match-Week starting {match_week_date}: {match_table}"
 
 
 def get_points_from_match_week_players(date_string):
-    date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
+    hour_string = "00:00:00"
+    date_arr = [date_string, hour_string]
+    date_time_string = ' '.join(date_arr)
+    date = dt.datetime.strptime(convert_to_berlin_time(date_time_string), "%Y-%m-%d %H:%M:%S")
 
     site = mwclient.Site('lol.fandom.com', path='/')
     response = site.api('cargoquery',
@@ -262,8 +303,8 @@ def get_points_from_match_week_players(date_string):
                         fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
                                "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, SP.KeystoneRune, "
                                "SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
-                        where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
-                              f"'{str(date + dt.timedelta(5))} 00:00:00' AND SG.Tournament = 'LCS 2022 Spring' OR "
+                        where=f"SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
+                              f"'{str(date + dt.timedelta(hours=(24*5)))}' AND SG.Tournament = 'LCS 2022 Spring' OR "
                               f"SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In'"
                         )
     data = response.get('cargoquery')
@@ -285,7 +326,10 @@ def get_points_from_match_week_players(date_string):
 
 
 def get_points_from_match_week_teams(date_string):
-    date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
+    hour_string = "00:00:00"
+    date_arr = [date_string, hour_string]
+    date_time_string = ' '.join(date_arr)
+    date = dt.datetime.strptime(convert_to_berlin_time(date_time_string), "%Y-%m-%d %H:%M:%S")
 
     site = mwclient.Site('lol.fandom.com', path='/')
     response = site.api('cargoquery',
@@ -294,8 +338,8 @@ def get_points_from_match_week_teams(date_string):
                         fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
                                "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, SG.Team1Towers, "
                                "SG.Team2Towers, SG.RiotPlatformGameId, SG.RiotGameId",
-                        where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
-                              f"'{str(date + dt.timedelta(5))} 00:00:00' AND SG.Tournament = 'LCS 2022 Spring' OR "
+                        where=f"SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
+                              f"'{str(date + dt.timedelta(hours=(24*5)))}' AND SG.Tournament = 'LCS 2022 Spring' OR "
                               f"SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In'"
                         )
     data = response.get('cargoquery')
@@ -317,27 +361,110 @@ def get_points_from_match_week_teams(date_string):
     return score_per_team
 
 
+def convert_to_berlin_time(date_string):
+    date = dt.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S")
+    date_string = str(date + dt.timedelta(hours=-1))
+    return date_string
+
+
+def check_if_game_was_updated_already(game_dictionary: dict, prev_matches_ws):
+    team1 = game_dictionary.get('Team1') if type(game_dictionary.get('Team1')) == str else 0
+    team2 = game_dictionary.get('Team2') if type(game_dictionary.get('Team2')) == str else 0
+    team_arr = [team1, team2]
+    date_string: str = game_dictionary.get('DateTime UTC')
+    date = dt.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S")
+    date_string = str(date + dt.timedelta(hours=1))
+    date_string = date_string.split(' ')[0]
+    prev_matches_size_string = 'E2'
+    prev_matches_cells = prev_matches_ws.acell(prev_matches_size_string).value
+    prev_matches = prev_matches_ws.get(prev_matches_cells)
+    for match in prev_matches:
+        match_team1 = match[0]
+        match_team2 = match[1]
+        match_date = match[2]
+        if date_string == match_date and match_team1 in team_arr and match_team2 in team_arr:
+            print(f"match {team_arr} at {date_string} was already updated")
+            return True
+    print(f"match {team_arr} at {date_string} was not already updated")
+    return False
+
+
+def add_match_to_prev_matches(game_dictionary=None, matches_to_add=None):
+    # if check_if_game_was_updated_already(game_dictionary):
+    #      return "Was already updated"
+
+    prev_matches_size_string = 'E2'
+    prev_matches_ws = open_spreadsheet(True, True)
+    prev_matches_cells = prev_matches_ws.acell(prev_matches_size_string).value
+    prev_matches = prev_matches_ws.get(prev_matches_cells)
+
+    if matches_to_add is None:
+        matches_to_add = []
+
+    if game_dictionary is None and len(matches_to_add) > 0:
+        for match_list in matches_to_add:
+            prev_matches.append(match_list)
+        return_string = f"updated prev matches and added {matches_to_add}"
+        prev_matches_cells_split = prev_matches_cells.split('C')
+        prev_matches_cells_split[-1] = str(int(prev_matches_cells_split[-1]) + len(matches_to_add))
+        prev_matches_cells = 'C'.join(prev_matches_cells_split)
+
+    elif game_dictionary is not None and len(matches_to_add) == 0:
+        team1 = game_dictionary.get('Team1') if type(game_dictionary.get('Team1')) == str else 0
+        team2 = game_dictionary.get('Team2') if type(game_dictionary.get('Team2')) == str else 0
+        match_arr = [team1, team2]
+        date_string: str = game_dictionary.get('DateTime UTC')
+        date_string = date_string.split(' ')[0]
+        match_arr.append(date_string)
+        prev_matches.append(match_arr)
+        return_string = f"updated prev matches and added {match_arr}"
+        prev_matches_cells_split = prev_matches_cells.split('C')
+        prev_matches_cells_split[-1] = str(int(prev_matches_cells_split[-1]) + 1)
+        prev_matches_cells = 'C'.join(prev_matches_cells_split)
+
+    else:
+        return_string = "No matches to update supplied"
+    prev_matches_ws.update(prev_matches_cells, prev_matches)
+    prev_matches_ws.update(prev_matches_size_string, prev_matches_cells)
+    print(return_string)
+    return return_string
+
+
 def get_game_stats(date_string: str, tournament: str):
     date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
 
     site = mwclient.Site('lol.fandom.com', path='/')
+    # response = site.api('cargoquery',
+    #                     limit="max",
+    #                     tables="ScoreboardGames=SG",
+    #                     fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
+    #                            "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, SG.Team1Towers, "
+    #                            "SG.Team2Towers, SG.RiotPlatformGameId, SG.RiotGameId",
+    #                     where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
+    #                           f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = '{tournament}' "
+    #                     )
     response = site.api('cargoquery',
                         limit="max",
-                        tables="ScoreboardGames=SG",
+                        tables="ScoreboardGames=SG, ScoreboardPlayers=SP",
+                        join_on="SG.GameId=SP.GameId",
                         fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
-                               "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, SG.Team1Towers, "
-                               "SG.Team2Towers, SG.RiotPlatformGameId, SG.RiotGameId",
+                               "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, SP.KeystoneRune, "
+                               "SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
                         where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
-                              f"'{str(date + dt.timedelta(1))} 00:00:00' AND SG.Tournament = '{tournament}' "
+                              f"'{str(date + dt.timedelta(hours=(24*5)))} 00:00:00' AND SG.Tournament = 'LCS 2022 Spring' OR "
+                              f"SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In'"
                         )
     data = response.get('cargoquery')
+    for game_dict in data:
+        was_updated = add_match_to_prev_matches(game_dict.get('title'))
+        print(was_updated)
     print(data)
 
-# get_game_stats_and_update_spread("2022-01-15", "LCS 2022 Lock In", get_teams=True, get_players=True)
+# get_game_stats_and_update_spread("2022-01-16", "LEC 2022 Spring", get_teams=True, get_players=True)
 
 # update_points_for_matchup("2022-01-14", "W1")
 
-# get_game_stats("2022-01-14", "LCS 2022 Lock In")
+# get_game_stats("2022-01-13", "LCS 2022 Lock In")
 
 # get_points_from_match_week_teams("2022-01-14")
 
