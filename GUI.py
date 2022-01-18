@@ -26,7 +26,7 @@ class MyWindow(QMainWindow):
         self.setWindowTitle("FantasyLeague")
         self.update_matchup_points_button = None
         self.week_label = None
-        self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = main.open_spreadsheet(use_prev=True)
+        self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = None, None, None, None
         self.initUi()
 
     def initUi(self):
@@ -61,11 +61,11 @@ class MyWindow(QMainWindow):
         self.update_table_points_button.setText("Update Player-Tables")
         self.update_table_points_button.adjustSize()
         self.update_table_points_button.clicked.connect(self.update_table_points)
-        self.update_table_points_button.move(50, 250)
+        self.update_table_points_button.move(50, 225)
 
         self.update_table_points_label = QtWidgets.QLabel(self)
         self.update_table_points_label.setText("")
-        self.update_table_points_label.move(50, 275)
+        self.update_table_points_label.move(50, 425)
 
         self.lec_lcs_cb = QtWidgets.QComboBox(self)
         self.lec_lcs_cb.addItems(["don't use specific Teams", 'use LEC-Teams', 'use LCS-Teams'])
@@ -86,13 +86,81 @@ class MyWindow(QMainWindow):
         self.tournamend_cb = QtWidgets.QComboBox(self)
         self.tournamend_cb.addItems(['LEC 2022 Spring', 'LCS 2022 Spring', 'LCS 2022 Lock In'])
         self.tournamend_cb.adjustSize()
-        self.tournamend_cb.move(50, 225)
+        self.tournamend_cb.move(50, 205)
 
         self.lec_lcs_team_selector_team_1 = QtWidgets.QComboBox(self)
         self.lec_lcs_team_selector_team_1.move(50, 150)
 
         self.lec_lcs_team_selector_team_2 = QtWidgets.QComboBox(self)
         self.lec_lcs_team_selector_team_2.move(150, 150)
+
+        self.player_selector_to_update = QtWidgets.QComboBox(self)
+        self.player_selector_to_update.move(250, 325)
+
+        self.player_league_cb = QtWidgets.QComboBox(self)
+        self.player_league_cb.addItems(['Please select from dropdown',
+                                        'use LEC-Players and Teams',
+                                        'use LCS-Players and Teams'])
+        self.player_league_cb.adjustSize()
+        self.player_league_cb.currentIndexChanged.connect(self.player_league_combobox_changed_action)
+        self.player_league_cb.move(50, 325)
+
+        self.update_single_player_team_btn = QtWidgets.QPushButton(self)
+        self.update_single_player_team_btn.setText('Update selected player for selected Week')
+        self.update_single_player_team_btn.adjustSize()
+        self.update_single_player_team_btn.move(50, 355)
+        self.update_single_player_team_btn.clicked.connect(self.update_single_player_team_button_clicked)
+
+    def update_single_player_team_button_clicked(self):
+        if self.fantasy_hub is None and self.lec_players is None and self.lcs_players is None and self.prev_matches is None:
+            self.fantasy_hub, \
+            self.lec_players, \
+            self.lcs_players, \
+            self.prev_matches = main.open_spreadsheet(use_prev=True)
+        player_to_update = self.player_selector_to_update.currentText()
+        league_to_update = self.player_league_cb.currentText()
+        if 'LEC' in league_to_update:
+            league_to_update = 'lec'
+        elif 'LCS' in league_to_update:
+            league_to_update = 'lcs'
+        else:
+            league_to_update = ""
+        sel_week = self.week_selector.currentText()
+        week_index = self.weeks.index(sel_week)
+        week_date_to_update = self.matchup_dates[week_index]
+
+        is_team = False
+        if player_to_update in self.lec_teams or player_to_update in self.lcs_teams:
+            is_team = True
+
+        if player_to_update == "" or league_to_update == "" or week_date_to_update == "":
+            return 1
+
+        return_string = main.update_single_player_points_for_week(player_to_update, week_date_to_update,
+                                                                  league_to_update, is_team)
+        self.update_table_points_label.setText(return_string)
+        self.update_table_points_label.adjustSize()
+
+    def player_league_combobox_changed_action(self, index):
+        if self.lec_players is None or self.lcs_players is None:
+            self.lec_players, self.lcs_players = main.open_spreadsheet(to_use=['lcs_players', 'lec_players'])
+        self.lec_player_list = self.grab_players_to_display(self.lec_players, 1)
+        self.lcs_player_list = self.grab_players_to_display(self.lcs_players, 2)
+        if index == 0:
+            self.player_selector_to_update.clear()
+        elif index == 1:
+            self.player_selector_to_update.clear()
+            self.player_selector_to_update.addItems(self.lec_player_list)
+            self.player_selector_to_update.adjustSize()
+        elif index == 2:
+            self.player_selector_to_update.clear()
+            self.player_selector_to_update.addItems(self.lcs_player_list)
+            self.player_selector_to_update.adjustSize()
+
+    def grab_players_to_display(self, ws, index):
+        ws_strings = ['F65:F124', 'F80:F155']
+        player_list = ws.get(ws_strings[index - 1])
+        return [item for sublist in player_list for item in sublist]
 
     def lec_lcs_combobox_changed_action(self, index):
         if index == 0:
@@ -118,6 +186,8 @@ class MyWindow(QMainWindow):
         self.update_table_points_label.adjustSize()
 
     def update_table_points(self):
+        if self.prev_matches is None:
+            self.prev_matches = main.open_spreadsheet(use_prev=True, only_use_prev=True)
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
         week_date = self.matchup_dates[week_index]
@@ -128,13 +198,16 @@ class MyWindow(QMainWindow):
         print("update button clicked")
         print(week, week_index, week_date, adjusted_week_date)
         response = main.get_game_stats_and_update_spread(adjusted_week_date, tournament,
-                                              self.lec_lcs_team_selector_team_1.currentText(),
-                                              self.lec_lcs_team_selector_team_2.currentText(),
-                                              self.player_cb.isChecked(), self.team_cb.isChecked(), self.prev_matches)
+                                                         self.lec_lcs_team_selector_team_1.currentText(),
+                                                         self.lec_lcs_team_selector_team_2.currentText(),
+                                                         self.player_cb.isChecked(), self.team_cb.isChecked(),
+                                                         self.prev_matches)
         self.update_table_points_label.setText(response)
         self.update_table_points_label.adjustSize()
 
     def gen_week_for_dropdown(self):
+        if not self.fantasy_hub:
+            self.fantasy_hub = main.open_spreadsheet(only_use_hub=True)
         weeks_coord = [("L", "18"), ("L", "22"), ("L", "26"), ("L", "30"), ("P", "18")]
         weeks = []
         week_dates = []
