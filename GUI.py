@@ -111,12 +111,58 @@ class MyWindow(QMainWindow):
         self.update_single_player_team_btn.move(50, 355)
         self.update_single_player_team_btn.clicked.connect(self.update_single_player_team_button_clicked)
 
-    def update_single_player_team_button_clicked(self):
-        if self.fantasy_hub is None and self.lec_players is None and self.lcs_players is None and self.prev_matches is None:
+        self.update_all_player_and_teams = QtWidgets.QPushButton(self)
+        self.update_all_player_and_teams.setText('Update all Player and Teams')
+        self.update_all_player_and_teams.adjustSize()
+        self.update_all_player_and_teams.move(50, 395)
+        self.update_all_player_and_teams.clicked.connect(self.update_all_players_and_teams_button_clicked)
+
+    def update_all_players_and_teams_button_clicked(self):
+        if self.fantasy_hub is None and self.lec_players is None and self.lcs_players is None:
             self.fantasy_hub, \
             self.lec_players, \
-            self.lcs_players, \
-            self.prev_matches = main.open_spreadsheet(use_prev=True)
+            self.lcs_players = main.open_spreadsheet()
+        if self.lcs_player_list is None and self.lec_player_list is None:
+            self.lec_player_list = self.grab_players_to_display(self.lec_players, 1)
+            self.lcs_player_list = self.grab_players_to_display(self.lcs_players, 2)
+        return_string = ""
+        sel_week = self.week_selector.currentText()
+        week_index = self.weeks.index(sel_week)
+        week_date_to_update = self.matchup_dates[week_index]
+        league_to_update = self.player_league_cb.currentText()
+        target_player_list = None
+        if 'LEC' in league_to_update:
+            league_to_update = 'lec'
+            target_player_list = self.lec_player_list
+        elif 'LCS' in league_to_update:
+            league_to_update = 'lcs'
+            target_player_list = self.lcs_player_list
+        else:
+            league_to_update = ""
+
+        for player in target_player_list:
+            player_to_update = player
+
+            is_team = False
+            if player_to_update in self.lec_teams or player_to_update in self.lcs_teams:
+                is_team = True
+
+            if player_to_update == "" or league_to_update == "" or week_date_to_update == "":
+                return_string = "Wrong league selected."
+                break
+
+            return_string += main.update_single_player_points_for_week(player_to_update, week_date_to_update,
+                                                                       league_to_update, is_team)
+            return_string += "\n"
+        self.update_table_points_label.setText(return_string)
+        self.update_table_points_label.adjustSize()
+        return return_string
+
+    def update_single_player_team_button_clicked(self):
+        if self.fantasy_hub is None and self.lec_players is None and self.lcs_players is None:
+            self.fantasy_hub, \
+            self.lec_players, \
+            self.lcs_players, = main.open_spreadsheet()
         player_to_update = self.player_selector_to_update.currentText()
         league_to_update = self.player_league_cb.currentText()
         if 'LEC' in league_to_update:
@@ -180,6 +226,10 @@ class MyWindow(QMainWindow):
     def update_matchup_points(self):
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
+        if week_index < 1:
+            return_string = f'Week {week_index + 1} has closed.'
+            self.update_table_points_label.setText(return_string)
+            return return_string
         print(week, week_index, self.matchup_dates[week_index])
         response = main.update_points_for_matchup(self.matchup_dates[week_index], week)
         self.update_table_points_label.setText(response)
