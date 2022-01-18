@@ -357,13 +357,14 @@ def update_points_for_matchup(match_week_date, sel_week: str):
         temp_sum = 0.0
         for player in players:
             player_string = player[0]
-            for player_name, player_score in player_scores.items():
+
+            for player_name, player_calc_score, player_full_score in lec_players_list:
                 if player_string == player_name:
-                    temp_sum = temp_sum + player_score
+                    temp_sum += float(player_full_score.replace(',', '.'))
                     break
-            for team_name, team_score in team_scores.items():
-                if player_string == team_name:
-                    temp_sum = temp_sum + team_score
+            for player_name, player_calc_score, player_full_score in lcs_players_list:
+                if player_string == player_name:
+                    temp_sum += float(player_full_score.replace(',', '.'))
                     break
         sums.append((f"{letter}3", temp_sum))
     # print(sums)
@@ -405,9 +406,9 @@ def get_points_from_match_week_players(date_string):
                         fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
                                "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, SP.KeystoneRune, "
                                "SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
-                        where=f"SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
-                              f"'{str(date + dt.timedelta(hours=(24 * 5)))}' AND SG.Tournament = 'LCS 2022 Spring' OR "
-                              f"SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In'"
+                        where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
+                              f"'{str(date + dt.timedelta(hours=(24 * 5)))}') AND (SG.Tournament = 'LCS 2022 Spring' OR"
+                              f" SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In')"
                         )
     data = response.get('cargoquery')
     player_scores = []
