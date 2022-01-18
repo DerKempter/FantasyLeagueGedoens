@@ -20,3 +20,5 @@ Since there was no propper Fantasy League for both LEC and LCS anymore, we had t
   -->Add points to total points and each week
 
 -Add documentation and annotations
+
+-Work out a possible solution for a playoff bracket
