@@ -224,6 +224,9 @@ class MyWindow(QMainWindow):
             self.lec_lcs_team_selector_team_2.addItems(self.lcs_teams)
 
     def update_matchup_points(self):
+        if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
+            self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
+        spreadsheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
         if week_index < 1:
@@ -231,7 +234,7 @@ class MyWindow(QMainWindow):
             self.update_table_points_label.setText(return_string)
             return return_string
         print(week, week_index, self.matchup_dates[week_index])
-        response = main.update_points_for_matchup(self.matchup_dates[week_index], week)
+        response = main.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
         self.update_table_points_label.setText(response)
         self.update_table_points_label.adjustSize()
 

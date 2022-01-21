@@ -339,14 +339,20 @@ def update_spreadsheet_player_points(scores_to_update: [], league: str):
         print("wrongly formatted league string!")
 
 
-def update_points_for_matchup(match_week_date, sel_week: str):
-    fantasy_hub, lec_players, lcs_players = open_spreadsheet()
-    spread_string_lec = 'F65:H124'
-    spread_string_lcs = 'F80:H155'
+def update_points_for_matchup(spreadsheets: [], match_week_date, sel_week: str, week_index: int):
+    fantasy_hub, lec_players, lcs_players = spreadsheets
+
+    spread_string_builder_lec = ['2', '60']
+    spread_string_builder_lcs = ['2', '77']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+
+    spread_string_index = spread_string_builder[week_index]
+    spread_string_lec = f"A{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
+    spread_string_lcs = f"A{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}"
+
     lec_players_list = lec_players.get(spread_string_lec)
     lcs_players_list = lcs_players.get(spread_string_lcs)
-    player_scores: dict = get_points_from_match_week_players(match_week_date)
-    team_scores: dict = get_points_from_match_week_teams(match_week_date)
+
     sums = []
     for i in range(0, 6):
         letter = chr(ord('M') + i)
@@ -358,11 +364,15 @@ def update_points_for_matchup(match_week_date, sel_week: str):
         for player in players:
             player_string = player[0]
 
-            for player_name, player_calc_score, player_full_score in lec_players_list:
+            for j in range(len(lec_players_list)):
+                player_name = lec_players_list[j][0]
+                player_full_score = lec_players_list[j][-1]
                 if player_string == player_name:
                     temp_sum += float(player_full_score.replace(',', '.'))
                     break
-            for player_name, player_calc_score, player_full_score in lcs_players_list:
+            for j in range(len(lec_players_list)):
+                player_name = lcs_players_list[j][0]
+                player_full_score = lcs_players_list[j][-1]
                 if player_string == player_name:
                     temp_sum += float(player_full_score.replace(',', '.'))
                     break
