@@ -387,7 +387,7 @@ def update_spreadsheet_player_points(scores_to_update: [], league: str, week_ind
 def update_points_for_matchup(spreadsheets: [], match_week_date, sel_week: str, week_index: int):
     fantasy_hub, lec_players, lcs_players = spreadsheets
 
-    spread_string_builder_lec = ['2', '60']
+    spread_string_builder_lec = ['2', '61']
     spread_string_builder_lcs = ['2', '77']
     spread_string_builder = ['F', 'G', 'H', 'I', 'J']
 
