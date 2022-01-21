@@ -219,8 +219,13 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
     spread_string_lcs = f"D{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}"
 
     spread_string = ""
+    spread_string_update = ""
     players_list = []
     temp_sum = 0
+    games_played_so_far = len(player_data)
+    if len(player_data) == 0:
+        games_played_so_far = 1
+
     lec_players, lcs_players = spreadsheets
     if league == "lec":
         lec_players: worksheet = lec_players
@@ -240,17 +245,25 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
             points = calc_points(game_dict, 'player')[0][0]
         temp_sum += points
 
+    temp_sum = temp_sum/games_played_so_far*2
+
     old_points = 0.0
+
+    score_list_to_update = []
 
     for player in players_list:
         if player[0] == player_string:
             if type(player[-1]) == str:
                 old_points = float(player[-1].replace(',', '.'))
                 player[-1] = temp_sum
+                score_list_to_update.append([temp_sum])
             else:
                 old_points = float(player[-1])
                 player[-1] = temp_sum
-        elif type(player[-1]) == str:
+                score_list_to_update.append([temp_sum])
+        else:
+            score_list_to_update.append([float(player[-1].replace(',', '.'))])
+        if type(player[-1]) == str:
             player[-1] = float(player[-1].replace(',', '.'))
 
         for i in range(len(player)):
@@ -261,10 +274,11 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
 
     return_string = f"updated points for Player/Team: {player_string} \nfrom {old_points} to {temp_sum}"
     print(return_string)
+    spread_string_update = spread_string.replace('D', spread_string_index)
     if league == 'lec':
-        lec_players.update(spread_string, players_list)
+        lec_players.update(spread_string_update, score_list_to_update)
     elif league == 'lcs':
-        lcs_players.update(spread_string, players_list)
+        lcs_players.update(spread_string_update, score_list_to_update)
     return return_string
 
 

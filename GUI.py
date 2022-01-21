@@ -152,7 +152,8 @@ class MyWindow(QMainWindow):
                 break
 
             return_string += main.update_single_player_points_for_week(player_to_update, week_date_to_update,
-                                                                       league_to_update, is_team)
+                                                                       week_index, league_to_update,
+                                                                       [self.lec_players, self.lcs_players], is_team)
             return_string += "\n"
         self.update_table_points_label.setText(return_string)
         self.update_table_points_label.adjustSize()
