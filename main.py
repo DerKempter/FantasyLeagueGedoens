@@ -246,6 +246,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
         temp_sum += points
 
     temp_sum = temp_sum/games_played_so_far*2
+    temp_sum = float("{:.2f}".format(temp_sum))
 
     old_points = 0.0
 
