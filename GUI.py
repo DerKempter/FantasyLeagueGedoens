@@ -14,6 +14,17 @@ class MyWindow(QMainWindow):
 
     def __init__(self):
         super(MyWindow, self).__init__()
+        self.lcs_player_list = None
+        self.update_all_player_and_teams = None
+        self.update_single_player_team_btn = None
+        self.player_league_cb = None
+        self.player_selector_to_update = None
+        self.lec_lcs_team_selector_team_2 = None
+        self.lec_lcs_team_selector_team_1 = None
+        self.lec_lcs_cb = None
+        self.update_table_points_label = None
+        self.tournamend_cb = None
+        self.lec_player_list = None
         self.player_cb = None
         self.day_label = None
         self.day_selector = None
@@ -118,10 +129,8 @@ class MyWindow(QMainWindow):
         self.update_all_player_and_teams.clicked.connect(self.update_all_players_and_teams_button_clicked)
 
     def update_all_players_and_teams_button_clicked(self):
-        if self.fantasy_hub is None and self.lec_players is None and self.lcs_players is None:
-            self.fantasy_hub, \
-            self.lec_players, \
-            self.lcs_players = main.open_spreadsheet()
+        if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
+            self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
         if self.lcs_player_list is None and self.lec_player_list is None:
             self.lec_player_list = self.grab_players_to_display(self.lec_players, 1)
             self.lcs_player_list = self.grab_players_to_display(self.lcs_players, 2)
@@ -139,6 +148,7 @@ class MyWindow(QMainWindow):
             target_player_list = self.lcs_player_list
         else:
             league_to_update = ""
+            return 1
 
         for player in target_player_list:
             player_to_update = player
