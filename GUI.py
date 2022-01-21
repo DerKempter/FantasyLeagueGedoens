@@ -152,17 +152,16 @@ class MyWindow(QMainWindow):
                 break
 
             return_string += main.update_single_player_points_for_week(player_to_update, week_date_to_update,
-                                                                       league_to_update, is_team)
+                                                                       week_index, league_to_update,
+                                                                       [self.lec_players, self.lcs_players], is_team)
             return_string += "\n"
         self.update_table_points_label.setText(return_string)
         self.update_table_points_label.adjustSize()
         return return_string
 
     def update_single_player_team_button_clicked(self):
-        if self.fantasy_hub is None and self.lec_players is None and self.lcs_players is None:
-            self.fantasy_hub, \
-            self.lec_players, \
-            self.lcs_players, = main.open_spreadsheet()
+        if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
+            self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
         player_to_update = self.player_selector_to_update.currentText()
         league_to_update = self.player_league_cb.currentText()
         if 'LEC' in league_to_update:
@@ -183,7 +182,8 @@ class MyWindow(QMainWindow):
             return 1
 
         return_string = main.update_single_player_points_for_week(player_to_update, week_date_to_update,
-                                                                  league_to_update, is_team)
+                                                                  week_index, league_to_update,
+                                                                  [self.lec_players, self.lcs_players], is_team)
         self.update_table_points_label.setText(return_string)
         self.update_table_points_label.adjustSize()
 
@@ -203,8 +203,9 @@ class MyWindow(QMainWindow):
             self.player_selector_to_update.addItems(self.lcs_player_list)
             self.player_selector_to_update.adjustSize()
 
-    def grab_players_to_display(self, ws, index):
-        ws_strings = ['F65:F124', 'F80:F155']
+    @staticmethod
+    def grab_players_to_display(ws, index):
+        ws_strings = ['A2:A61', 'A2:A77']
         player_list = ws.get(ws_strings[index - 1])
         return [item for sublist in player_list for item in sublist]
 
@@ -224,6 +225,9 @@ class MyWindow(QMainWindow):
             self.lec_lcs_team_selector_team_2.addItems(self.lcs_teams)
 
     def update_matchup_points(self):
+        if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
+            self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
+        spreadsheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
         if week_index < 1:
@@ -231,7 +235,7 @@ class MyWindow(QMainWindow):
             self.update_table_points_label.setText(return_string)
             return return_string
         print(week, week_index, self.matchup_dates[week_index])
-        response = main.update_points_for_matchup(self.matchup_dates[week_index], week)
+        response = main.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
         self.update_table_points_label.setText(response)
         self.update_table_points_label.adjustSize()
 
@@ -247,7 +251,7 @@ class MyWindow(QMainWindow):
         tournament = self.tournamend_cb.currentText()
         print("update button clicked")
         print(week, week_index, week_date, adjusted_week_date)
-        response = main.get_game_stats_and_update_spread(adjusted_week_date, tournament,
+        response = main.get_game_stats_and_update_spread(adjusted_week_date, week_index, tournament,
                                                          self.lec_lcs_team_selector_team_1.currentText(),
                                                          self.lec_lcs_team_selector_team_2.currentText(),
                                                          self.player_cb.isChecked(), self.team_cb.isChecked(),

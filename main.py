@@ -1,6 +1,7 @@
 import mwclient
 import datetime as dt
 import gspread
+from gspread import worksheet
 
 SPREADSHEET_NAME = "High Society Kranichfeld"
 
@@ -31,7 +32,7 @@ def open_spreadsheet(use_prev=False, only_use_prev=False, only_use_hub=False, to
     return return_arr
 
 
-def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: str = None, team2: str = None,
+def get_game_stats_and_update_spread(date_string: str, week_index: int, tournament: str, team1: str = None, team2: str = None,
                                      get_players=True, get_teams=True, prev_matches_ws=None):
     if not get_players and not get_teams:
         print("updating nothing")
@@ -42,7 +43,7 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
     date = dt.datetime.strptime(convert_to_berlin_time(date_time_string), "%Y-%m-%d %H:%M:%S")
 
     site = mwclient.Site('lol.fandom.com', path='/')
-    if team1 is None or team2 is None:
+    if team1 == '' or team2 == '':
         if get_players:
             player_response = site.api('cargoquery',
                                        limit="max",
@@ -154,14 +155,15 @@ def get_game_stats_and_update_spread(date_string: str, tournament: str, team1: s
     print(games_to_add_to_sheet)
 
     if len(score_to_update) > 0 and len(games_to_add_to_sheet) > 0:
-        update_spreadsheet_player_points(score_to_update, tournament)
+        update_spreadsheet_player_points(score_to_update, tournament, week_index)
         add_match_to_prev_matches(matches_to_add=games_to_add_to_sheet)
         return f"updated {score_to_update}"
     else:
-        return f"Either didn't find any games or all games found through given arguments have already been updated."
+        return f"Either didn't find any games or \nall games found through given arguments have already been updated."
 
 
-def update_single_player_points_for_week(player_string: str, date_string: str, league: str, is_team: bool = False):
+def update_single_player_points_for_week(player_string: str, date_string: str, week_index: int,
+                                         league: str, spreadsheets: [], is_team: bool = False):
     hour_string = "00:00:00"
     date_arr = [date_string, hour_string]
     date_time_string = ' '.join(date_arr)
@@ -207,15 +209,30 @@ def update_single_player_points_for_week(player_string: str, date_string: str, l
         return f"Wrong api-request."
 
     player_data = response.get('cargoquery')
+
+    spread_string_builder_lec = ['65', '124']
+    spread_string_builder_lcs = ['81', '156']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+
+    spread_string_index = spread_string_builder[week_index]
+    spread_string_lec = f"D{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
+    spread_string_lcs = f"D{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}"
+
     spread_string = ""
+    spread_string_update = ""
     players_list = []
     temp_sum = 0
-    lec_players, lcs_players = open_spreadsheet(to_use=['lec_players', 'lcs_players'])
+    games_played_so_far = len(player_data)
+    if len(player_data) == 0:
+        games_played_so_far = 1
+
+    lec_players, lcs_players = spreadsheets
     if league == "lec":
-        spread_string = 'F65:G124'
+        lec_players: worksheet = lec_players
+        spread_string = spread_string_lec
         players_list = lec_players.get(spread_string)
     elif league == "lcs":
-        spread_string = 'F80:G155'
+        spread_string = spread_string_lcs
         players_list = lcs_players.get(spread_string)
     else:
         return f"wrong league String provided: {league}. \nAccepted strings are 'lec' and 'lcs'."
@@ -228,24 +245,40 @@ def update_single_player_points_for_week(player_string: str, date_string: str, l
             points = calc_points(game_dict, 'player')[0][0]
         temp_sum += points
 
+    temp_sum = temp_sum/games_played_so_far*2
+
     old_points = 0.0
+
+    score_list_to_update = []
 
     for player in players_list:
         if player[0] == player_string:
-            if type(player[1]) == str:
-                old_points = player[1]
-                player[1] = temp_sum
+            if type(player[-1]) == str:
+                old_points = float(player[-1].replace(',', '.'))
+                player[-1] = temp_sum
+                score_list_to_update.append([temp_sum])
             else:
-                old_points = player[1]
-                player[1] = temp_sum
-        elif type(player[1]) == str:
-            player[1] = float(player[1].replace(',', '.'))
+                old_points = float(player[-1])
+                player[-1] = temp_sum
+                score_list_to_update.append([temp_sum])
+        else:
+            score_list_to_update.append([float(player[-1].replace(',', '.'))])
+        if type(player[-1]) == str:
+            player[-1] = float(player[-1].replace(',', '.'))
+
+        for i in range(len(player)):
+            if i == 0 or i == len(player) + 1:
+                continue
+            if type(player[i]) == str:
+                player[i] = float(player[i].replace(',', '.'))
+
     return_string = f"updated points for Player/Team: {player_string} \nfrom {old_points} to {temp_sum}"
     print(return_string)
+    spread_string_update = spread_string.replace('D', spread_string_index)
     if league == 'lec':
-        lec_players.update(spread_string, players_list)
+        lec_players.update(spread_string_update, score_list_to_update)
     elif league == 'lcs':
-        lcs_players.update(spread_string, players_list)
+        lcs_players.update(spread_string_update, score_list_to_update)
     return return_string
 
 
@@ -307,46 +340,64 @@ def calc_points(game_dictionary, category='player', team=None):
     return sums
 
 
-def update_spreadsheet_player_points(scores_to_update: [], league: str):
+def update_spreadsheet_player_points(scores_to_update: [], league: str, week_index: int):
     lec_players, lcs_players = open_spreadsheet(to_use=['lec_players', 'lcs_players'])
+    spread_string_builder_lec = ['65', '124']
+    spread_string_builder_lcs = ['81', '156']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
     if league == "LEC 2022 Spring":
-        spread_string = 'F65:G124'
+        spread_string_index = spread_string_builder[week_index]
+        spread_string = f'D{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}'
         lec_players_list = lec_players.get(spread_string)
         for score, player_string in scores_to_update:
             for player in lec_players_list:
                 if player[0] == player_string:
-                    if type(player[1]) == str:
-                        player[1] = float(player[1].replace(',', '.')) + score
+                    if type(player[-1]) == str:
+                        player[-1] = float(player[-1].replace(',', '.')) + score
                     else:
-                        player[1] = float(player[1]) + score
-                elif type(player[1]) == str:
-                    player[1] = float(player[1].replace(',', '.'))
+                        player[-1] = float(player[-1]) + score
+                elif type(player[-1]) == str:
+                    player[-1] = float(player[-1].replace(',', '.'))
+
+                for i in range(len(player)):
+                    if i == 0 or i == len(player):
+                        continue
+                    if type(player[i]) == str:
+                        player[i] = float(player[i].replace(',', '.'))
+
         lec_players.update(spread_string, lec_players_list)
     elif league == "LCS 2022 Lock In" or league == "LCS 2022 Spring":
-        spread_string = 'F80:G155'
+        spread_string_index = spread_string_builder[week_index]
+        spread_string = f'D{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}'
         lcs_players_list = lcs_players.get(spread_string)
         for score, player_string in scores_to_update:
             for player in lcs_players_list:
                 if player[0] == player_string:
-                    if type(player[1]) == str:
-                        player[1] = float(player[1].replace(',', '.')) + score
+                    if type(player[-1]) == str:
+                        player[-1] = float(player[-1].replace(',', '.')) + score
                     else:
-                        player[1] = float(player[1]) + score
-                elif type(player[1]) == str:
-                    player[1] = float(player[1].replace(',', '.'))
+                        player[-1] = float(player[-1]) + score
+                elif type(player[-1]) == str:
+                    player[-1] = float(player[-1].replace(',', '.'))
         lcs_players.update(spread_string, lcs_players_list)
     else:
         print("wrongly formatted league string!")
 
 
-def update_points_for_matchup(match_week_date, sel_week: str):
-    fantasy_hub, lec_players, lcs_players = open_spreadsheet()
-    spread_string_lec = 'F65:H124'
-    spread_string_lcs = 'F80:H155'
+def update_points_for_matchup(spreadsheets: [], match_week_date, sel_week: str, week_index: int):
+    fantasy_hub, lec_players, lcs_players = spreadsheets
+
+    spread_string_builder_lec = ['2', '61']
+    spread_string_builder_lcs = ['2', '77']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+
+    spread_string_index = spread_string_builder[week_index]
+    spread_string_lec = f"A{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
+    spread_string_lcs = f"A{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}"
+
     lec_players_list = lec_players.get(spread_string_lec)
     lcs_players_list = lcs_players.get(spread_string_lcs)
-    player_scores: dict = get_points_from_match_week_players(match_week_date)
-    team_scores: dict = get_points_from_match_week_teams(match_week_date)
+
     sums = []
     for i in range(0, 6):
         letter = chr(ord('M') + i)
@@ -358,11 +409,15 @@ def update_points_for_matchup(match_week_date, sel_week: str):
         for player in players:
             player_string = player[0]
 
-            for player_name, player_calc_score, player_full_score in lec_players_list:
+            for j in range(len(lec_players_list)):
+                player_name = lec_players_list[j][0]
+                player_full_score = lec_players_list[j][-1]
                 if player_string == player_name:
                     temp_sum += float(player_full_score.replace(',', '.'))
                     break
-            for player_name, player_calc_score, player_full_score in lcs_players_list:
+            for j in range(len(lec_players_list)):
+                player_name = lcs_players_list[j][0]
+                player_full_score = lcs_players_list[j][-1]
                 if player_string == player_name:
                     temp_sum += float(player_full_score.replace(',', '.'))
                     break
