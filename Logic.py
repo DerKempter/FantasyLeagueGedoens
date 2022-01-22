@@ -35,7 +35,8 @@ def open_spreadsheet(use_prev=False, only_use_prev=False, only_use_hub=False, to
     return return_arr
 
 
-def get_game_stats_and_update_spread(date_string: str, week_index: int, tournament: str, team1: str = None, team2: str = None,
+def get_game_stats_and_update_spread(date_string: str, week_index: int, tournament: str, team1: str = None,
+                                     team2: str = None,
                                      get_players=True, get_teams=True, prev_matches_ws=None):
     if not get_players and not get_teams:
         print("updating nothing")
@@ -188,7 +189,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
                                    "SP.KeystoneRune, SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, "
                                    "SP.Deaths, SP.CS",
                             where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
-                                  f"'{str(date + dt.timedelta(hours=24*5))}') AND (SG.Tournament = 'LCS 2022 Spring' OR"
+                                  f"'{str(date + dt.timedelta(hours=24 * 5))}') AND (SG.Tournament = 'LCS 2022 Spring' OR"
                                   f" SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In') "
                                   f"AND SP.Link = '{player_string}'"
                             )
@@ -202,7 +203,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
                                    "SG.Team1Towers, SG.Team2Towers, SG.Team1RiftHeralds, SG.Team2RiftHeralds, "
                                    "SG.RiotPlatformGameId, SG.RiotGameId",
                             where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
-                                  f"'{str(date + dt.timedelta(hours=24*5))}') AND "
+                                  f"'{str(date + dt.timedelta(hours=24 * 5))}') AND "
                                   f"(SG.Tournament = 'LCS 2022 Spring' OR SG.Tournament = 'LEC 2022 Spring' OR "
                                   f"SG.Tournament = 'LCS 2022 Lock In') AND (SG.Team1 = '{player_string}' "
                                   f"OR SG.Team2 = '{player_string}')"
@@ -249,7 +250,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
             points = calc_points(game_dict, 'player')[0][0]
         temp_sum += points
 
-    temp_sum = temp_sum/games_played_so_far*2
+    temp_sum = temp_sum / games_played_so_far * 2
     temp_sum = float("{:.2f}".format(temp_sum))
 
     old_points = 0.0
@@ -693,6 +694,16 @@ def update_player_agency(ws: []):
     lcs_players.update(spread_string_lcs, lec_lcs_players_list[1])
 
     return changed_agencies
+
+def send_multi_kill_points_to_sheet(ws: [], score: int, player: str, week_index: int):
+    spread_string_builder_lec = ['128', '187']
+    spread_string_builder_lcs = ['160', '235']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+
+    spread_string_index = spread_string_builder[week_index]
+    spread_string_lec = f"D{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
+    spread_string_lcs = f"D{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}"
+
 
 def get_game_stats(date_string: str, tournament: str):
     date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
