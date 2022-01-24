@@ -589,6 +589,52 @@ def add_match_to_prev_matches(game_dictionary=None, matches_to_add=None):
     return return_string
 
 
+def norm_mult_kills_for_region(ws: [], week_index: int, date_string: str):
+
+    hour_string = "00:00:00"
+    date_arr = [date_string, hour_string]
+    date_time_string = ' '.join(date_arr)
+    date = dt.datetime.strptime(convert_to_berlin_time(date_time_string), "%Y-%m-%d %H:%M:%S")
+
+    site = mwclient.Site('lol.fandom.com', path='/')
+    response = site.api('cargoquery',
+                        limit="3",
+                        tables="ScoreboardGames=SG, ScoreboardPlayers=SP",
+                        join_on="SG.GameId=SP.GameId",
+                        fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, "
+                               "SG.Patch, SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, "
+                               "SG.Team2Barons, SG.Team1Towers, SG.Team2Towers, SG.RiotPlatformGameId, "
+                               "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, "
+                               "SP.KeystoneRune, SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, "
+                               "SP.Deaths, SP.CS",
+                        where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
+                              f"'{str(date + dt.timedelta(hours=24*5))}') AND (SG.Tournament = 'LCS 2022 Spring' OR"
+                              f" SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In')"
+                        )
+
+    player_data = response.get('cargoquery')
+
+
+    lec_player_ws, lcs_player_ws = ws
+    spread_string_builder_lec = ['2', '61']
+    spread_string_builder_lcs = ['160', '236']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J', 'K']
+
+    spread_string_index = spread_string_builder[week_index]
+    spread_string_lec = f"{spread_string_index}{spread_string_builder_lec[0]}:" \
+                        f"{spread_string_index}{spread_string_builder_lec[1]}"
+    spread_string_lcs = f"{spread_string_index}{spread_string_builder_lcs[0]}:" \
+                        f"{spread_string_index}{spread_string_builder_lcs[1]}"
+
+    lec_players_list = lec_player_ws.get(spread_string_lec)
+    lcs_players_list = lcs_player_ws.get(spread_string_lcs)
+    players_lists = [lec_players_list, lcs_players_list]
+
+    for players_list in players_lists:
+        for player in players_list:
+            player[0] = float(player[0] / 2)
+
+
 def get_game_stats(date_string: str, tournament: str):
     date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
 

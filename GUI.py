@@ -128,6 +128,17 @@ class MyWindow(QMainWindow):
         self.update_all_player_and_teams.move(50, 395)
         self.update_all_player_and_teams.clicked.connect(self.update_all_players_and_teams_button_clicked)
 
+        self.norm_mult_kills_btn = QtWidgets.QPushButton(self)
+        self.norm_mult_kills_btn.setText('Norm extrapoint table to two games')
+        self.norm_mult_kills_btn.adjustSize()
+        self.norm_mult_kills_btn.move(200, 405)
+        self.norm_mult_kills_btn.clicked.connect(self.norm_mult_kills_btn_clicked)
+
+
+    def norm_mult_kills_btn_clicked(self):
+        spreadsheets = [self.lec_players, self.lcs_players]
+        main.norm_mult_kills_for_region(spreadsheets)
+
     def update_all_players_and_teams_button_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
             self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
