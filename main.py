@@ -589,6 +589,66 @@ def add_match_to_prev_matches(game_dictionary=None, matches_to_add=None):
     return return_string
 
 
+def update_player_agency(ws: []):
+    fantasy_hub, lec_players, lcs_players = ws
+    players_of_players = []
+    for i in range(0, 6):
+        letter = chr(ord('M') + i)
+        start_cell = letter + '3'
+        end_cell = letter + '11'
+        players = fantasy_hub.get(f"{start_cell}:{end_cell}")
+        temp_players_of_players = [player for sublist in players for player in sublist]
+        players_of_players.append(temp_players_of_players)
+        print(temp_players_of_players)
+
+    spread_string_builder_lec = ['2', '61']
+    spread_string_builder_lcs = ['2', '77']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+
+    spread_string_lec = f"A{spread_string_builder_lec[0]}:D{spread_string_builder_lec[1]}"
+    spread_string_lcs = f"A{spread_string_builder_lcs[0]}:D{spread_string_builder_lcs[1]}"
+
+    lec_players_list = lec_players.get(spread_string_lec)
+    lcs_players_list = lcs_players.get(spread_string_lcs)
+
+    lec_lcs_players_list = [lec_players_list, lcs_players_list]
+
+    changed_agencies = ""
+
+    for players_list in lec_lcs_players_list:
+        for player in players_list:
+            if player[0] in players_of_players[0]:
+                if player[3] != players_of_players[0][0]:
+                    changed_agencies += f"{player[0]} changed agency from {player[3]} to {players_of_players[0][0]}\n"
+                    player[3] = players_of_players[0][0]
+            elif player[0] in players_of_players[1]:
+                if player[3] != players_of_players[1][0]:
+                    changed_agencies += f"{player[0]} changed agency from {player[3]} to {players_of_players[1][0]}\n"
+                    player[3] = players_of_players[1][0]
+            elif player[0] in players_of_players[2]:
+                if player[3] != players_of_players[2][0]:
+                    changed_agencies += f"{player[0]} changed agency from {player[3]} to {players_of_players[2][0]}\n"
+                    player[3] = players_of_players[2][0]
+            elif player[0] in players_of_players[3]:
+                if player[3] != players_of_players[3][0]:
+                    changed_agencies += f"{player[0]} changed agency from {player[3]} to {players_of_players[3][0]}\n"
+                    player[3] = players_of_players[3][0]
+            elif player[0] in players_of_players[4]:
+                if player[3] != players_of_players[4][0]:
+                    changed_agencies += f"{player[0]} changed agency from {player[3]} to {players_of_players[4][0]}\n"
+                    player[3] = players_of_players[4][0]
+            elif player[0] in players_of_players[5]:
+                if player[3] != players_of_players[5][0]:
+                    changed_agencies += f"{player[0]} changed agency from {player[3]} to {players_of_players[5][0]}\n"
+                    player[3] = players_of_players[5][0]
+            else:
+                player[3] = 'FA'
+
+    lec_players.update(spread_string_lec, lec_lcs_players_list[0])
+    lcs_players.update(spread_string_lcs, lec_lcs_players_list[1])
+
+    return changed_agencies
+
 def get_game_stats(date_string: str, tournament: str):
     date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
 

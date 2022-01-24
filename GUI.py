@@ -76,7 +76,7 @@ class MyWindow(QMainWindow):
 
         self.update_table_points_label = QtWidgets.QLabel(self)
         self.update_table_points_label.setText("")
-        self.update_table_points_label.move(50, 425)
+        self.update_table_points_label.move(50, 445)
 
         self.lec_lcs_cb = QtWidgets.QComboBox(self)
         self.lec_lcs_cb.addItems(["don't use specific Teams", 'use LEC-Teams', 'use LCS-Teams'])
@@ -127,6 +127,26 @@ class MyWindow(QMainWindow):
         self.update_all_player_and_teams.adjustSize()
         self.update_all_player_and_teams.move(50, 395)
         self.update_all_player_and_teams.clicked.connect(self.update_all_players_and_teams_button_clicked)
+
+        self.update_player_agency = QtWidgets.QPushButton(self)
+        self.update_player_agency.setText('Update which player belongs to whom')
+        self.update_player_agency.adjustSize()
+        self.update_player_agency.clicked.connect(self.update_player_agency_btn_clicked)
+        self.update_player_agency.move(50, 420)
+
+    def update_player_agency_btn_clicked(self):
+        if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
+            self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
+        worksheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
+        return_string = main.update_player_agency(worksheets)
+
+        if return_string == "":
+            return_string = "No Agencies updated"
+
+        self.update_table_points_label.setText(return_string)
+        self.update_table_points_label.adjustSize()
+
+        return return_string
 
     def update_all_players_and_teams_button_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
