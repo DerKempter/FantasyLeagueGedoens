@@ -260,7 +260,7 @@ class MyWindow(QMainWindow):
         spreadsheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
-        if week_index < 1:
+        if week_index < 2:
             return_string = f'Week {week_index + 1} has closed.'
             self.update_table_points_label.setText(return_string)
             return return_string
