@@ -595,7 +595,7 @@ def update_player_agency(ws: []):
     for i in range(0, 6):
         letter = chr(ord('M') + i)
         start_cell = letter + '3'
-        end_cell = letter + '11'
+        end_cell = letter + '14'
         players = fantasy_hub.get(f"{start_cell}:{end_cell}")
         temp_players_of_players = [player for sublist in players for player in sublist]
         players_of_players.append(temp_players_of_players)
