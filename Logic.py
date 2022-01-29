@@ -225,6 +225,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
     games_played_so_far = len(player_data)
     if len(player_data) == 0:
         games_played_so_far = 1
+        return "No Games Found"
 
     lec_players, lcs_players = spreadsheets
     if league == "lec":
