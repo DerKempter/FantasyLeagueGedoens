@@ -1,11 +1,17 @@
 import sys
+
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+
 import Logic as logic
 import datetime as dt
 
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QScrollArea, QWidget, QVBoxLayout, QLabel
 
 __VERSION__ = '0.1'
+
+import Threading
 
 
 class MyWindow(QMainWindow):
@@ -16,6 +22,16 @@ class MyWindow(QMainWindow):
 
     def __init__(self):
         super(MyWindow, self).__init__()
+
+        self.threadpool = QThreadPool()
+        print(f"Multithreading with maximum {self.threadpool.maxThreadCount()} threads")
+
+        self.signals = Threading.WorkerSignals()
+        self.signals.return_string.connect(self.handle_return_string_signal)
+        self.signals.get_worksheets.connect(self.handle_get_worksheets_signal)
+        self.signals.get_dates_lists.connect(self.handle_get_dates_lists_signal)
+
+        self.update_player_agency = None
         self.lcs_player_list = None
         self.update_all_player_and_teams = None
         self.update_single_player_team_btn = None
@@ -42,6 +58,20 @@ class MyWindow(QMainWindow):
         self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = None, None, None, None
         self.initUi()
 
+    def handle_return_string_signal(self, rtr_str: str):
+        self.current_rtr_str = rtr_str
+
+    def handle_get_worksheets_signal(self, rtr_ws: []):
+        self.curr_ws = rtr_ws
+
+    def handle_get_dates_lists_signal(self, weeks, week_dates):
+        self.weeks = weeks
+        self.matchup_dates = week_dates
+        self.week_selector.clear()
+        self.week_selector.addItems(self.weeks)
+        self.week_selector.adjustSize()
+
+
     def initUi(self):
         self.week_label = QtWidgets.QLabel(self)
         self.week_label.setText("Select Week to update")
@@ -54,10 +84,10 @@ class MyWindow(QMainWindow):
         self.day_label.move(50, 85)
 
         self.week_selector = QtWidgets.QComboBox(self)
-        self.weeks, self.matchup_dates = self.gen_week_for_dropdown()
-        self.week_selector.addItems(self.weeks)
-        self.week_selector.adjustSize()
         self.week_selector.move(50, 50)
+        self.week_selector.adjustSize()
+        self.week_selector.addItems(['Loading...'])
+        self.gen_week_for_dropdown_thread()
 
         self.day_selector = QtWidgets.QComboBox(self)
         self.day_selector.addItems(['1', '2', '3', '4'])
@@ -67,7 +97,7 @@ class MyWindow(QMainWindow):
         self.update_matchup_points_button = QtWidgets.QPushButton(self)
         self.update_matchup_points_button.setText("Update Matchups")
         self.update_matchup_points_button.adjustSize()
-        self.update_matchup_points_button.clicked.connect(self.update_matchup_points)
+        self.update_matchup_points_button.clicked.connect(self.update_matchup_points_thread)
         self.update_matchup_points_button.move(150, 50)
 
         self.show_matchup_points_button = QtWidgets.QPushButton(self)
@@ -79,17 +109,19 @@ class MyWindow(QMainWindow):
         self.update_table_points_button = QtWidgets.QPushButton(self)
         self.update_table_points_button.setText("Update Player-Tables")
         self.update_table_points_button.adjustSize()
-        self.update_table_points_button.clicked.connect(self.update_table_points)
+        self.update_table_points_button.clicked.connect(self.update_table_points_thread)
         self.update_table_points_button.move(50, 225)
 
-        self.update_table_points_label = QtWidgets.QLabel(self)
+        self.update_table_points_label = ScrollLabel(self)
         self.update_table_points_label.setText("")
-        self.update_table_points_label.move(50, 445)
+        self.update_table_points_label.move(400, 50)
+        self.update_table_points_label.resize(275, 400)
+        self.resize(750, 500)
 
         self.lec_lcs_cb = QtWidgets.QComboBox(self)
         self.lec_lcs_cb.addItems(["don't use specific Teams", 'use LEC-Teams', 'use LCS-Teams'])
         self.lec_lcs_cb.adjustSize()
-        self.lec_lcs_cb.currentIndexChanged.connect(self.lec_lcs_combobox_changed_action)
+        self.lec_lcs_cb.currentIndexChanged.connect(self.lec_lcs_combobox_changed_action_thread)
         self.lec_lcs_cb.move(50, 125)
 
         self.team_cb = QtWidgets.QCheckBox(self)
@@ -121,26 +153,31 @@ class MyWindow(QMainWindow):
                                         'use LEC-Players and Teams',
                                         'use LCS-Players and Teams'])
         self.player_league_cb.adjustSize()
-        self.player_league_cb.currentIndexChanged.connect(self.player_league_combobox_changed_action)
+        self.player_league_cb.currentIndexChanged.connect(self.player_league_combobox_changed_action_thread)
         self.player_league_cb.move(50, 325)
 
         self.update_single_player_team_btn = QtWidgets.QPushButton(self)
         self.update_single_player_team_btn.setText('Update selected player for selected Week')
         self.update_single_player_team_btn.adjustSize()
         self.update_single_player_team_btn.move(50, 355)
-        self.update_single_player_team_btn.clicked.connect(self.update_single_player_team_button_clicked)
+        self.update_single_player_team_btn.clicked.connect(self.update_single_player_team_button_clicked_thread)
 
         self.update_all_player_and_teams = QtWidgets.QPushButton(self)
         self.update_all_player_and_teams.setText('Update all Player and Teams')
         self.update_all_player_and_teams.adjustSize()
         self.update_all_player_and_teams.move(50, 395)
-        self.update_all_player_and_teams.clicked.connect(self.update_all_players_and_teams_button_clicked)
+        self.update_all_player_and_teams.clicked.connect(self.update_all_players_and_teams_button_clicked_thread)
 
         self.update_player_agency = QtWidgets.QPushButton(self)
         self.update_player_agency.setText('Update which player belongs to whom')
         self.update_player_agency.adjustSize()
-        self.update_player_agency.clicked.connect(self.update_player_agency_btn_clicked)
+        self.update_player_agency.clicked.connect(self.update_player_agency_btn_clicked_thread)
         self.update_player_agency.move(50, 420)
+
+    def update_player_agency_btn_clicked_thread(self):
+        kwargs = {}
+        worker = Threading.Worker(self.update_player_agency_btn_clicked, **kwargs)
+        self.threadpool.start(worker)
 
     def update_player_agency_btn_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
@@ -152,9 +189,14 @@ class MyWindow(QMainWindow):
             return_string = "No Agencies updated"
 
         self.update_table_points_label.setText(return_string)
-        self.update_table_points_label.adjustSize()
+
 
         return return_string
+
+    def update_all_players_and_teams_button_clicked_thread(self):
+        kwargs = {}
+        worker = Threading.Worker(self.update_all_players_and_teams_button_clicked, **kwargs)
+        self.threadpool.start(worker)
 
     def update_all_players_and_teams_button_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
@@ -193,9 +235,16 @@ class MyWindow(QMainWindow):
                                                                         week_index, league_to_update,
                                                                         [self.lec_players, self.lcs_players], is_team)
             return_string += "\n"
+            self.update_table_points_label.setText(return_string)
+
         self.update_table_points_label.setText(return_string)
-        self.update_table_points_label.adjustSize()
+
         return return_string
+
+    def update_single_player_team_button_clicked_thread(self):
+        kwargs = {}
+        worker = Threading.Worker(self.update_single_player_team_button_clicked, **kwargs)
+        self.threadpool.start(worker)
 
     def update_single_player_team_button_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
@@ -223,7 +272,11 @@ class MyWindow(QMainWindow):
                                                                    week_index, league_to_update,
                                                                    [self.lec_players, self.lcs_players], is_team)
         self.update_table_points_label.setText(return_string)
-        self.update_table_points_label.adjustSize()
+
+    def player_league_combobox_changed_action_thread(self, index):
+        kwargs = {'index': index}
+        worker = Threading.Worker(self.player_league_combobox_changed_action, **kwargs)
+        self.threadpool.start(worker)
 
     def player_league_combobox_changed_action(self, index):
         if self.lec_players is None or self.lcs_players is None:
@@ -241,11 +294,21 @@ class MyWindow(QMainWindow):
             self.player_selector_to_update.addItems(self.lcs_player_list)
             self.player_selector_to_update.adjustSize()
 
+    def grab_players_to_display_thread(self, ws, index):
+        kwargs = {'ws': ws, 'index': index}
+        worker = Threading.Worker(self.grab_players_to_display, **kwargs)
+        self.threadpool.start(worker)
+
     @staticmethod
     def grab_players_to_display(ws, index):
         ws_strings = ['A2:A61', 'A2:A77']
         player_list = ws.get(ws_strings[index - 1])
         return [item for sublist in player_list for item in sublist]
+
+    def lec_lcs_combobox_changed_action_thread(self, index):
+        kwargs = {'index': index}
+        worker = Threading.Worker(self.lec_lcs_combobox_changed_action, **kwargs)
+        self.threadpool.start(worker)
 
     def lec_lcs_combobox_changed_action(self, index):
         if index == 0:
@@ -262,6 +325,11 @@ class MyWindow(QMainWindow):
             self.lec_lcs_team_selector_team_1.addItems(self.lcs_teams)
             self.lec_lcs_team_selector_team_2.addItems(self.lcs_teams)
 
+    def update_matchup_points_thread(self):
+        kwargs = {}
+        worker = Threading.Worker(self.update_matchup_points, **kwargs)
+        self.threadpool.start(worker)
+
     def update_matchup_points(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
@@ -275,7 +343,11 @@ class MyWindow(QMainWindow):
         print(week, week_index, self.matchup_dates[week_index])
         response = logic.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
         self.update_table_points_label.setText(response)
-        self.update_table_points_label.adjustSize()
+
+    def update_table_points_thread(self):
+        kwargs = {}
+        worker = Threading.Worker(self.update_table_points, **kwargs)
+        self.threadpool.start(worker)
 
     def show_matchup_points(self):
         if self.fantasy_hub is None:
@@ -307,7 +379,11 @@ class MyWindow(QMainWindow):
                                                           self.player_cb.isChecked(), self.team_cb.isChecked(),
                                                           self.prev_matches)
         self.update_table_points_label.setText(response)
-        self.update_table_points_label.adjustSize()
+
+    def gen_week_for_dropdown_thread(self):
+        kwargs = {}
+        worker = Threading.Worker(self.gen_week_for_dropdown, **kwargs)
+        self.threadpool.start(worker)
 
     def gen_week_for_dropdown(self):
         if not self.fantasy_hub:
@@ -321,7 +397,42 @@ class MyWindow(QMainWindow):
             week_date = self.fantasy_hub.acell(f"{logic.inc_letter(letter, 1)}{number}").value
             weeks.append(week_string)
             week_dates.append(week_date)
+        self.signals.get_dates_lists.emit(weeks, week_dates)
         return weeks, week_dates
+
+
+class ScrollLabel(QScrollArea):
+
+    # constructor
+    def __init__(self, *args, **kwargs):
+        QScrollArea.__init__(self, *args, **kwargs)
+
+        # making widget resizable
+        self.setWidgetResizable(True)
+
+        # making qwidget object
+        content = QWidget(self)
+        self.setWidget(content)
+
+        # vertical box layout
+        lay = QVBoxLayout(content)
+
+        # creating label
+        self.label = QLabel(content)
+
+        # setting alignment to the text
+        self.label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+
+        # making label multi-line
+        self.label.setWordWrap(True)
+
+        # adding label to the layout
+        lay.addWidget(self.label)
+
+    # the setText method
+    def setText(self, text):
+        # setting text to the label
+        self.label.setText(text)
 
 
 def bootstrap():

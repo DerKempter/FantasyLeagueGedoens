@@ -9,7 +9,8 @@ WEEKS = [("L", "18"), ("L", "22"), ("L", "26"), ("L", "30"), ("P", "18"),
 
 
 def inc_letter(letter: chr, increment_int) -> chr:
-    return chr(ord(letter) + increment_int)
+    return_val = chr(ord(letter) + increment_int)
+    return return_val
 
 
 def open_spreadsheet(use_prev=False, only_use_prev=False, only_use_hub=False, to_use=None):
@@ -227,6 +228,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
     games_played_so_far = len(player_data)
     if len(player_data) == 0:
         games_played_so_far = 1
+        return f"No Games Found for {player_string}"
 
     lec_players, lcs_players = spreadsheets
     if league == "lec":
@@ -446,9 +448,11 @@ def update_points_for_matchup(spreadsheets: [], match_week_date, sel_week: str, 
     for letter, number in WEEKS:
         week_string = fantasy_hub.acell(f"{letter}{number}").value
         if week_string == sel_week:
-            start_cell = f"{letter}{int(number) + 1}"
-            end_cell = f"{inc_letter(letter, 3)}{int(number) + 3}"
-            match_table = fantasy_hub.get(f"{start_cell}:{end_cell}")
+            start_cell_get = f"{inc_letter(letter, 0)}{int(number) + 1}"
+            start_cell_set = f"{inc_letter(letter, 1)}{int(number) + 1}"
+            end_cell_get = f"{inc_letter(letter, 3)}{int(number) + 3}"
+            end_cell_set = f"{inc_letter(letter, 2)}{int(number) + 3}"
+            match_table = fantasy_hub.get(f"{start_cell_get}:{end_cell_get}")
             for row in match_table:
                 for name, score in sums_with_names:
                     if row[0] == name:
@@ -456,9 +460,29 @@ def update_points_for_matchup(spreadsheets: [], match_week_date, sel_week: str, 
                     elif row[3] == name:
                         row[2] = score
             # print(match_table)
-            fantasy_hub.update(f"{start_cell}:{end_cell}", match_table)
+            condensed_match_table = condense_match_table_no_names(match_table)
+            fantasy_hub.update(f"{start_cell_set}:{end_cell_set}", condensed_match_table)
             break
-    return f"matchtable for Match-Week starting {match_week_date}: {match_table}"
+    return_string = generate_return_string_from_match_table(match_table, match_week_date)
+    return return_string
+
+
+def condense_match_table_no_names(match_table: []):
+    condensed_match_table = []
+    for row in match_table:
+        new_row = [row[1], row[2]]
+        condensed_match_table.append(new_row)
+    return condensed_match_table
+
+
+def generate_return_string_from_match_table(match_table: [], match_week_date: str):
+    return_string = f"Matchtable for Match-Week starting on {match_week_date}:\n\n"
+    for row in match_table:
+        row[1] = float("{:.2f}".format(row[1]))
+        row[2] = float("{:.2f}".format(row[2]))
+        return_string += f"{row[0]} vs {row[3]} \n"
+        return_string += f"{row[1]} Pkt : {row[2]} Pkt \n\n"
+    return return_string
 
 
 def get_points_from_match_week_players(date_string):
