@@ -1,8 +1,10 @@
+import datetime
 import sys
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
+import Logic
 import Logic as logic
 import datetime as dt
 
@@ -336,7 +338,15 @@ class MyWindow(QMainWindow):
         spreadsheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
-        if week_index < 2:
+        today = datetime.datetime.today()
+        week_date = datetime.datetime(1, 1, 1, 1, 1, 1)
+        for letter, number in logic.WEEKS:
+            week_number = self.fantasy_hub.acell(f"{letter}{number}").value
+            if week_number == week:
+                week_string = self.fantasy_hub.acell(f"{Logic.inc_letter(letter, 1)}{number}").value
+                week_date = dt.datetime.strptime(week_string, "%Y-%m-%d")
+                break
+        if (today - week_date) > datetime.timedelta(days=3):
             return_string = f'Week {week_index + 1} has closed.'
             self.update_table_points_label.setText(return_string)
             return return_string
