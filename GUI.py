@@ -344,9 +344,9 @@ class MyWindow(QMainWindow):
         response = logic.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
         self.update_table_points_label.setText(response)
 
-    def update_table_points_thread(self):
+    def show_matchup_points_thread(self):
         kwargs = {}
-        worker = Threading.Worker(self.update_table_points, **kwargs)
+        worker = Threading.Worker(self.show_matchup_points, **kwargs)
         self.threadpool.start(worker)
 
     def show_matchup_points(self):
@@ -359,7 +359,11 @@ class MyWindow(QMainWindow):
         response = logic.grab_points_for_matchup(spreadsheet, self.matchup_dates[week_index], week)
 
         self.update_table_points_label.setText(response)
-        self.update_table_points_label.adjustSize()
+
+    def update_table_points_thread(self):
+        kwargs = {}
+        worker = Threading.Worker(self.update_table_points, **kwargs)
+        self.threadpool.start(worker)
 
     def update_table_points(self):
         if self.prev_matches is None:
