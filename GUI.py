@@ -1,9 +1,11 @@
 import sys
-import main
+import Logic as logic
 import datetime as dt
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow
+
+__VERSION__ = '0.1'
 
 
 class MyWindow(QMainWindow):
@@ -136,9 +138,9 @@ class MyWindow(QMainWindow):
 
     def update_player_agency_btn_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
-            self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
+            self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
         worksheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
-        return_string = main.update_player_agency(worksheets)
+        return_string = logic.update_player_agency(worksheets)
 
         if return_string == "":
             return_string = "No Agencies updated"
@@ -150,7 +152,7 @@ class MyWindow(QMainWindow):
 
     def update_all_players_and_teams_button_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
-            self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
+            self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
         if self.lcs_player_list is None and self.lec_player_list is None:
             self.lec_player_list = self.grab_players_to_display(self.lec_players, 1)
             self.lcs_player_list = self.grab_players_to_display(self.lcs_players, 2)
@@ -181,9 +183,9 @@ class MyWindow(QMainWindow):
                 return_string = "Wrong league selected."
                 break
 
-            return_string += main.update_single_player_points_for_week(player_to_update, week_date_to_update,
-                                                                       week_index, league_to_update,
-                                                                       [self.lec_players, self.lcs_players], is_team)
+            return_string += logic.update_single_player_points_for_week(player_to_update, week_date_to_update,
+                                                                        week_index, league_to_update,
+                                                                        [self.lec_players, self.lcs_players], is_team)
             return_string += "\n"
         self.update_table_points_label.setText(return_string)
         self.update_table_points_label.adjustSize()
@@ -191,7 +193,7 @@ class MyWindow(QMainWindow):
 
     def update_single_player_team_button_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
-            self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
+            self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
         player_to_update = self.player_selector_to_update.currentText()
         league_to_update = self.player_league_cb.currentText()
         if 'LEC' in league_to_update:
@@ -211,15 +213,15 @@ class MyWindow(QMainWindow):
         if player_to_update == "" or league_to_update == "" or week_date_to_update == "":
             return 1
 
-        return_string = main.update_single_player_points_for_week(player_to_update, week_date_to_update,
-                                                                  week_index, league_to_update,
-                                                                  [self.lec_players, self.lcs_players], is_team)
+        return_string = logic.update_single_player_points_for_week(player_to_update, week_date_to_update,
+                                                                   week_index, league_to_update,
+                                                                   [self.lec_players, self.lcs_players], is_team)
         self.update_table_points_label.setText(return_string)
         self.update_table_points_label.adjustSize()
 
     def player_league_combobox_changed_action(self, index):
         if self.lec_players is None or self.lcs_players is None:
-            self.lec_players, self.lcs_players = main.open_spreadsheet(to_use=['lcs_players', 'lec_players'])
+            self.lec_players, self.lcs_players = logic.open_spreadsheet(to_use=['lcs_players', 'lec_players'])
         self.lec_player_list = self.grab_players_to_display(self.lec_players, 1)
         self.lcs_player_list = self.grab_players_to_display(self.lcs_players, 2)
         if index == 0:
@@ -256,7 +258,7 @@ class MyWindow(QMainWindow):
 
     def update_matchup_points(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
-            self.fantasy_hub, self.lec_players, self.lcs_players = main.open_spreadsheet()
+            self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
         spreadsheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
@@ -265,13 +267,13 @@ class MyWindow(QMainWindow):
             self.update_table_points_label.setText(return_string)
             return return_string
         print(week, week_index, self.matchup_dates[week_index])
-        response = main.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
+        response = logic.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
         self.update_table_points_label.setText(response)
         self.update_table_points_label.adjustSize()
 
     def update_table_points(self):
         if self.prev_matches is None:
-            self.prev_matches = main.open_spreadsheet(use_prev=True, only_use_prev=True)
+            self.prev_matches = logic.open_spreadsheet(use_prev=True, only_use_prev=True)
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
         week_date = self.matchup_dates[week_index]
@@ -281,31 +283,36 @@ class MyWindow(QMainWindow):
         tournament = self.tournamend_cb.currentText()
         print("update button clicked")
         print(week, week_index, week_date, adjusted_week_date)
-        response = main.get_game_stats_and_update_spread(adjusted_week_date, week_index, tournament,
-                                                         self.lec_lcs_team_selector_team_1.currentText(),
-                                                         self.lec_lcs_team_selector_team_2.currentText(),
-                                                         self.player_cb.isChecked(), self.team_cb.isChecked(),
-                                                         self.prev_matches)
+        response = logic.get_game_stats_and_update_spread(adjusted_week_date, week_index, tournament,
+                                                          self.lec_lcs_team_selector_team_1.currentText(),
+                                                          self.lec_lcs_team_selector_team_2.currentText(),
+                                                          self.player_cb.isChecked(), self.team_cb.isChecked(),
+                                                          self.prev_matches)
         self.update_table_points_label.setText(response)
         self.update_table_points_label.adjustSize()
 
     def gen_week_for_dropdown(self):
         if not self.fantasy_hub:
-            self.fantasy_hub = main.open_spreadsheet(only_use_hub=True)
-        weeks_coord = [("L", "18"), ("L", "22"), ("L", "26"), ("L", "30"), ("P", "18")]
+            self.fantasy_hub = logic.open_spreadsheet(only_use_hub=True)
+        weeks_coord = [("L", "18"), ("L", "22"), ("L", "26"), ("L", "30"), ("P", "18"),
+                       ("P", "22"), ("P", "26"), ("P", "30"), ("T", "18"), ("T", "22")]
         weeks = []
         week_dates = []
         for letter, number in weeks_coord:
             week_string = self.fantasy_hub.acell(f"{letter}{number}").value
-            week_date = self.fantasy_hub.acell(f"{main.inc_letter(letter, 1)}{number}").value
+            week_date = self.fantasy_hub.acell(f"{logic.inc_letter(letter, 1)}{number}").value
             weeks.append(week_string)
             week_dates.append(week_date)
         return weeks, week_dates
 
 
-if __name__ == '__main__':
+def bootstrap():
     app = QApplication(sys.argv)
     win = MyWindow()
 
     win.show()
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    bootstrap()
