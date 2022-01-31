@@ -70,6 +70,12 @@ class MyWindow(QMainWindow):
         self.update_matchup_points_button.clicked.connect(self.update_matchup_points)
         self.update_matchup_points_button.move(150, 50)
 
+        self.show_matchup_points_button = QtWidgets.QPushButton(self)
+        self.show_matchup_points_button.setText("Show Matchups")
+        self.show_matchup_points_button.adjustSize()
+        self.show_matchup_points_button.clicked.connect(self.show_matchup_points)
+        self.show_matchup_points_button.move(250, 50)
+
         self.update_table_points_button = QtWidgets.QPushButton(self)
         self.update_table_points_button.setText("Update Player-Tables")
         self.update_table_points_button.adjustSize()
@@ -268,6 +274,18 @@ class MyWindow(QMainWindow):
             return return_string
         print(week, week_index, self.matchup_dates[week_index])
         response = logic.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
+        self.update_table_points_label.setText(response)
+        self.update_table_points_label.adjustSize()
+
+    def show_matchup_points(self):
+        if self.fantasy_hub is None:
+            self.fantasy_hub = logic.open_spreadsheet(to_use=['fantasy_hub'])
+        spreadsheet = self.fantasy_hub
+        week = self.week_selector.currentText()
+        week_index = self.weeks.index(week)
+        print(week, week_index, self.matchup_dates[week_index])
+        response = logic.grab_points_for_matchup(spreadsheet, self.matchup_dates[week_index], week)
+
         self.update_table_points_label.setText(response)
         self.update_table_points_label.adjustSize()
 

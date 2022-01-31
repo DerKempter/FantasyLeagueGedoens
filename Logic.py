@@ -385,6 +385,19 @@ def update_spreadsheet_player_points(scores_to_update: [], league: str, week_ind
         print("wrongly formatted league string!")
 
 
+def grab_points_for_matchup(fantasy_hub, match_week_date, sel_week: str):
+    weeks = [("L", "18"), ("L", "22"), ("L", "26"), ("L", "30"), ("P", "18")]
+    match_table = []
+    for letter, number in weeks:
+        week_string = fantasy_hub.acell(f"{letter}{number}").value
+        if week_string == sel_week:
+            start_cell = f"{letter}{int(number) + 1}"
+            end_cell = f"{inc_letter(letter, 3)}{int(number) + 3}"
+            match_table = fantasy_hub.get(f"{start_cell}:{end_cell}")
+            break
+    return f"matchtable for Match-Week starting {match_week_date}: {match_table}"
+
+
 def update_points_for_matchup(spreadsheets: [], match_week_date, sel_week: str, week_index: int):
     fantasy_hub, lec_players, lcs_players = spreadsheets
 
