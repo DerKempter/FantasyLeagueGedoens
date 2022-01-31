@@ -1,12 +1,13 @@
 import sys
 
-from PyQt5.QtCore import QThreadPool
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 
 import Logic as logic
 import datetime as dt
 
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QScrollArea, QWidget, QVBoxLayout, QLabel
 
 __VERSION__ = '0.1'
 
@@ -105,9 +106,11 @@ class MyWindow(QMainWindow):
         self.update_table_points_button.clicked.connect(self.update_table_points_thread)
         self.update_table_points_button.move(50, 225)
 
-        self.update_table_points_label = QtWidgets.QLabel(self)
+        self.update_table_points_label = ScrollLabel(self)
         self.update_table_points_label.setText("")
-        self.update_table_points_label.move(50, 445)
+        self.update_table_points_label.move(400, 50)
+        self.update_table_points_label.resize(275, 400)
+        self.resize(750, 500)
 
         self.lec_lcs_cb = QtWidgets.QComboBox(self)
         self.lec_lcs_cb.addItems(["don't use specific Teams", 'use LEC-Teams', 'use LCS-Teams'])
@@ -180,7 +183,7 @@ class MyWindow(QMainWindow):
             return_string = "No Agencies updated"
 
         self.update_table_points_label.setText(return_string)
-        self.update_table_points_label.adjustSize()
+
 
         return return_string
 
@@ -226,8 +229,10 @@ class MyWindow(QMainWindow):
                                                                         week_index, league_to_update,
                                                                         [self.lec_players, self.lcs_players], is_team)
             return_string += "\n"
+            self.update_table_points_label.setText(return_string)
+
         self.update_table_points_label.setText(return_string)
-        self.update_table_points_label.adjustSize()
+
         return return_string
 
     def update_single_player_team_button_clicked_thread(self):
@@ -261,7 +266,6 @@ class MyWindow(QMainWindow):
                                                                    week_index, league_to_update,
                                                                    [self.lec_players, self.lcs_players], is_team)
         self.update_table_points_label.setText(return_string)
-        self.update_table_points_label.adjustSize()
 
     def player_league_combobox_changed_action_thread(self, index):
         kwargs = {'index': index}
@@ -333,7 +337,6 @@ class MyWindow(QMainWindow):
         print(week, week_index, self.matchup_dates[week_index])
         response = logic.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
         self.update_table_points_label.setText(response)
-        self.update_table_points_label.adjustSize()
 
     def update_table_points_thread(self):
         kwargs = {}
@@ -358,7 +361,6 @@ class MyWindow(QMainWindow):
                                                           self.player_cb.isChecked(), self.team_cb.isChecked(),
                                                           self.prev_matches)
         self.update_table_points_label.setText(response)
-        self.update_table_points_label.adjustSize()
 
     def gen_week_for_dropdown_thread(self):
         kwargs = {}
@@ -378,6 +380,40 @@ class MyWindow(QMainWindow):
             week_dates.append(week_date)
         self.signals.get_dates_lists.emit(weeks, week_dates)
         return weeks, week_dates
+
+
+class ScrollLabel(QScrollArea):
+
+    # constructor
+    def __init__(self, *args, **kwargs):
+        QScrollArea.__init__(self, *args, **kwargs)
+
+        # making widget resizable
+        self.setWidgetResizable(True)
+
+        # making qwidget object
+        content = QWidget(self)
+        self.setWidget(content)
+
+        # vertical box layout
+        lay = QVBoxLayout(content)
+
+        # creating label
+        self.label = QLabel(content)
+
+        # setting alignment to the text
+        self.label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+
+        # making label multi-line
+        self.label.setWordWrap(True)
+
+        # adding label to the layout
+        lay.addWidget(self.label)
+
+    # the setText method
+    def setText(self, text):
+        # setting text to the label
+        self.label.setText(text)
 
 
 def bootstrap():
