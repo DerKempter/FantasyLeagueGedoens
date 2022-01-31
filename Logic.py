@@ -479,8 +479,12 @@ def condense_match_table_no_names(match_table: []):
 def generate_return_string_from_match_table(match_table: [], match_week_date: str):
     return_string = f"Matchtable for Match-Week starting on {match_week_date}:\n\n"
     for row in match_table:
-        row[1] = float("{:.2f}".format(float(row[1].replace(',', '.'))))
-        row[2] = float("{:.2f}".format(float(row[2].replace(',', '.'))))
+        if type(row[1]) is str or type(row[2]) is str:
+            row[1] = float("{:.2f}".format(float(row[1].replace(',', '.'))))
+            row[2] = float("{:.2f}".format(float(row[2].replace(',', '.'))))
+        else:
+            row[1] = float("{:.2f}".format(row[1]))
+            row[2] = float("{:.2f}".format(row[2]))
         return_string += f"{row[0]} vs {row[3]} \n"
         return_string += f"{row[1]} Pkt : {row[2]} Pkt \n\n"
     return return_string
