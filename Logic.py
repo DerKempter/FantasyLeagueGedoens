@@ -228,7 +228,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
     games_played_so_far = len(player_data)
     if len(player_data) == 0:
         games_played_so_far = 1
-        return f"No Games Found for {player_string}"
+        return f"No New Games Found for {player_string}"
 
     lec_players, lcs_players = spreadsheets
     if league == "lec":
@@ -277,7 +277,10 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
             if type(player[i]) == str:
                 player[i] = float(player[i].replace(',', '.'))
 
-    return_string = f"updated points for Player/Team: {player_string} \nfrom {old_points} to {temp_sum}"
+    if old_points < temp_sum:
+        return_string = f"updated points for Player/Team: {player_string} \nfrom {old_points} to {temp_sum}"
+    else:
+        return_string = f"No New Games Found for {player_string}"
     print(return_string)
     spread_string_update = spread_string.replace('D', spread_string_index)
     if league == 'lec':

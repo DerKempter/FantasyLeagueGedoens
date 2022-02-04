@@ -73,7 +73,6 @@ class MyWindow(QMainWindow):
         self.week_selector.addItems(self.weeks)
         self.week_selector.adjustSize()
 
-
     def initUi(self):
         self.week_label = QtWidgets.QLabel(self)
         self.week_label.setText("Select Week to update")
@@ -192,7 +191,6 @@ class MyWindow(QMainWindow):
 
         self.update_table_points_label.setText(return_string)
 
-
         return return_string
 
     def update_all_players_and_teams_button_clicked_thread(self):
@@ -223,6 +221,9 @@ class MyWindow(QMainWindow):
             return 1
 
         for player in target_player_list:
+            temp_update_string = return_string + f"Updating Points for {player}"
+            self.update_table_points_label.setText(temp_update_string)
+
             player_to_update = player
 
             is_team = False
@@ -233,13 +234,19 @@ class MyWindow(QMainWindow):
                 return_string = "Wrong league selected."
                 break
 
-            return_string += logic.update_single_player_points_for_week(player_to_update, week_date_to_update,
-                                                                        week_index, league_to_update,
-                                                                        [self.lec_players, self.lcs_players], is_team)
-            return_string += "\n"
+            temp_return_string: str = logic.update_single_player_points_for_week(player_to_update, week_date_to_update,
+                                                                                 week_index, league_to_update,
+                                                                                 [self.lec_players, self.lcs_players],
+                                                                                 is_team)
+            if not temp_return_string.startswith('No New Games Found for'):
+                return_string += temp_return_string
+                return_string += "\n"
             self.update_table_points_label.setText(return_string)
 
-        self.update_table_points_label.setText(return_string)
+        if return_string != "":
+            self.update_table_points_label.setText(return_string)
+        else:
+            self.update_table_points_label.setText('No Points updated.')
 
         return return_string
 
@@ -253,6 +260,7 @@ class MyWindow(QMainWindow):
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
         player_to_update = self.player_selector_to_update.currentText()
         league_to_update = self.player_league_cb.currentText()
+        return_string = ""
         if 'LEC' in league_to_update:
             league_to_update = 'lec'
         elif 'LCS' in league_to_update:
@@ -269,6 +277,9 @@ class MyWindow(QMainWindow):
 
         if player_to_update == "" or league_to_update == "" or week_date_to_update == "":
             return 1
+
+        temp_update_string = return_string + f"Updating Points for {player_to_update}"
+        self.update_table_points_label.setText(temp_update_string)
 
         return_string = logic.update_single_player_points_for_week(player_to_update, week_date_to_update,
                                                                    week_index, league_to_update,
