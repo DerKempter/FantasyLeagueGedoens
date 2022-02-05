@@ -23,19 +23,7 @@ class MyWindow(QMainWindow):
 
     def __init__(self):
         super(MyWindow, self).__init__()
-        self.triples = None
-        self.trigger_multi_kill_ui_btn = None
-        self.turrets = None
-        self.heralds = None
-        self.barons = None
-        self.pentas = None
-        self.drakes = None
-        self.quadras = None
-        self.doubles = None
-        self.drake_soul = None
-        self.win_under_thirty = None
-        self.first_turret = None
-        self.first_blood = None
+
 
         self.threadpool = QThreadPool()
         print(f"Multithreading with maximum {self.threadpool.maxThreadCount()} threads")
@@ -64,6 +52,19 @@ class MyWindow(QMainWindow):
         self.update_matchup_points_button = None
         self.week_label = None
         self.show_matchup_points_button = None
+        self.triples = None
+        self.trigger_multi_kill_ui_btn = None
+        self.turrets = None
+        self.heralds = None
+        self.barons = None
+        self.pentas = None
+        self.drakes = None
+        self.quadras = None
+        self.doubles = None
+        self.drake_soul = None
+        self.win_under_thirty = None
+        self.first_turret = None
+        self.first_blood = None
         self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = None, None, None, None
         self.init_ui()
 
@@ -151,6 +152,63 @@ class MyWindow(QMainWindow):
         self.update_player_agency.clicked.connect(self.update_player_agency_btn_clicked_thread)
         self.update_player_agency.move(50, 200)
 
+        self.trigger_multi_kill_ui_btn = QtWidgets.QPushButton(self)
+        self.trigger_multi_kill_ui_btn.setText('Open Bonuspoints UI for selected player')
+        self.trigger_multi_kill_ui_btn.adjustSize()
+        self.trigger_multi_kill_ui_btn.clicked.connect(self.init_multi_kill_ui)
+
+        self.doubles = QtWidgets.QSpinBox(self)
+        self.doubles.setVisible(False)
+        self.triples = QtWidgets.QSpinBox(self)
+        self.triples.setVisible(False)
+        self.quadras = QtWidgets.QSpinBox(self)
+        self.quadras.setVisible(False)
+        self.pentas = QtWidgets.QSpinBox(self)
+        self.pentas.setVisible(False)
+
+        self.doubles_label = QtWidgets.QLabel(self)
+        self.doubles_label.setVisible(False)
+        self.triples_label = QtWidgets.QLabel(self)
+        self.triples_label.setVisible(False)
+        self.quadras_label = QtWidgets.QLabel(self)
+        self.quadras_label.setVisible(False)
+        self.pentas_label = QtWidgets.QLabel(self)
+        self.pentas_label.setVisible(False)
+
+        self.drakes = QtWidgets.QSpinBox(self)
+        self.drakes.setVisible(False)
+        self.barons = QtWidgets.QSpinBox(self)
+        self.barons.setVisible(False)
+        self.heralds = QtWidgets.QSpinBox(self)
+        self.heralds.setVisible(False)
+        self.turrets = QtWidgets.QSpinBox(self)
+        self.turrets.setVisible(False)
+        self.first_blood = QtWidgets.QCheckBox(self)
+        self.first_blood.setVisible(False)
+        self.first_turret = QtWidgets.QCheckBox(self)
+        self.first_turret.setVisible(False)
+        self.win_under_thirty = QtWidgets.QCheckBox(self)
+        self.win_under_thirty.setVisible(False)
+        self.drake_soul = QtWidgets.QCheckBox(self)
+        self.drake_soul.setVisible(False)
+
+        self.drakes_label = QtWidgets.QLabel(self)
+        self.drakes_label.setVisible(False)
+        self.barons_label = QtWidgets.QLabel(self)
+        self.barons_label.setVisible(False)
+        self.heralds_label = QtWidgets.QLabel(self)
+        self.heralds_label.setVisible(False)
+        self.turrets_label = QtWidgets.QLabel(self)
+        self.turrets_label.setVisible(False)
+        self.first_blood_label = QtWidgets.QLabel(self)
+        self.first_blood_label.setVisible(False)
+        self.first_turret_label = QtWidgets.QLabel(self)
+        self.first_turret_label.setVisible(False)
+        self.win_under_thirty_label = QtWidgets.QLabel(self)
+        self.win_under_thirty_label.setVisible(False)
+        self.drake_soul_label = QtWidgets.QLabel(self)
+        self.drake_soul_label.setVisible(False)
+
         # Deprecated
         # self.day_label = QtWidgets.QLabel(self)
         # self.day_label.setText("Select Weekday for updating")
@@ -226,63 +284,6 @@ class MyWindow(QMainWindow):
         kwargs = {}
         worker = Threading.Worker(self.update_all_players_and_teams_button_clicked, **kwargs)
         self.threadpool.start(worker)
-
-        self.trigger_multi_kill_ui_btn = QtWidgets.QPushButton(self)
-        self.trigger_multi_kill_ui_btn.setText('Open Bonuspoints UI for selected player')
-        self.trigger_multi_kill_ui_btn.adjustSize()
-        self.trigger_multi_kill_ui_btn.clicked.connect(self.init_multi_kill_ui)
-
-        self.doubles = QtWidgets.QSpinBox(self)
-        self.doubles.setVisible(False)
-        self.triples = QtWidgets.QSpinBox(self)
-        self.triples.setVisible(False)
-        self.quadras = QtWidgets.QSpinBox(self)
-        self.quadras.setVisible(False)
-        self.pentas = QtWidgets.QSpinBox(self)
-        self.pentas.setVisible(False)
-
-        self.doubles_label = QtWidgets.QLabel(self)
-        self.doubles_label.setVisible(False)
-        self.triples_label = QtWidgets.QLabel(self)
-        self.triples_label.setVisible(False)
-        self.quadras_label = QtWidgets.QLabel(self)
-        self.quadras_label.setVisible(False)
-        self.pentas_label = QtWidgets.QLabel(self)
-        self.pentas_label.setVisible(False)
-
-        self.drakes = QtWidgets.QSpinBox(self)
-        self.drakes.setVisible(False)
-        self.barons = QtWidgets.QSpinBox(self)
-        self.barons.setVisible(False)
-        self.heralds = QtWidgets.QSpinBox(self)
-        self.heralds.setVisible(False)
-        self.turrets = QtWidgets.QSpinBox(self)
-        self.turrets.setVisible(False)
-        self.first_blood = QtWidgets.QCheckBox(self)
-        self.first_blood.setVisible(False)
-        self.first_turret = QtWidgets.QCheckBox(self)
-        self.first_turret.setVisible(False)
-        self.win_under_thirty = QtWidgets.QCheckBox(self)
-        self.win_under_thirty.setVisible(False)
-        self.drake_soul = QtWidgets.QCheckBox(self)
-        self.drake_soul.setVisible(False)
-
-        self.drakes_label = QtWidgets.QLabel(self)
-        self.drakes_label.setVisible(False)
-        self.barons_label = QtWidgets.QLabel(self)
-        self.barons_label.setVisible(False)
-        self.heralds_label = QtWidgets.QLabel(self)
-        self.heralds_label.setVisible(False)
-        self.turrets_label = QtWidgets.QLabel(self)
-        self.turrets_label.setVisible(False)
-        self.first_blood_label = QtWidgets.QLabel(self)
-        self.first_blood_label.setVisible(False)
-        self.first_turret_label = QtWidgets.QLabel(self)
-        self.first_turret_label.setVisible(False)
-        self.win_under_thirty_label = QtWidgets.QLabel(self)
-        self.win_under_thirty_label.setVisible(False)
-        self.drake_soul_label = QtWidgets.QLabel(self)
-        self.drake_soul_label.setVisible(False)
 
     def update_all_players_and_teams_button_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
@@ -528,7 +529,7 @@ class MyWindow(QMainWindow):
         return weeks, week_dates
 
     def init_multi_kill_ui(self):
-        self.setGeometry(100, 100, 800, 500)
+        # self.setGeometry(100, 100, 800, 500)
 
         player_to_update = self.player_selector_to_update.currentText()
         league_to_update = self.player_league_cb.currentText()
@@ -564,7 +565,7 @@ class MyWindow(QMainWindow):
 
             self.drakes.setVisible(True)
             self.drakes.adjustSize()
-            self.drakes.move(550, 100)
+            self.drakes.move(50, 250)
 
             self.barons.setVisible(True)
             self.barons.adjustSize()
