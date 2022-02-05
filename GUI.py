@@ -513,10 +513,9 @@ class MyWindow(QMainWindow):
     def show_user_player_points_for_week_btn_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
-        name_coords_x = ['M', 'N', 'O', 'P', 'Q', 'R']
-        name_coords_y = ['3', '11']
+        name_coordinates_x = ['M', 'N', 'O', 'P', 'Q', 'R']
+        name_coordinates_y = ['3', '11']
         user_index = self.user_selector_cb.currentText()
-
 
 
 class ScrollLabel(QScrollArea):
