@@ -222,6 +222,7 @@ class MyWindow(QMainWindow):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
         worksheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
+        self.progress_bar.setVisible(False)
         return_string = logic.update_player_agency(worksheets)
 
         if return_string == "":
@@ -327,6 +328,7 @@ class MyWindow(QMainWindow):
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
         if self.week_selector.currentText().startswith('loading'):
             return self.wait_for_week_dropdown()
+        self.progress_bar.setVisible(False)
         player_to_update = self.player_selector_to_update.currentText()
         league_to_update = self.player_league_cb.currentText()
         return_string = ""
@@ -419,6 +421,7 @@ class MyWindow(QMainWindow):
     def update_matchup_points(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
+        self.progress_bar.setVisible(False)
         spreadsheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
@@ -446,6 +449,7 @@ class MyWindow(QMainWindow):
     def show_matchup_points(self):
         if self.fantasy_hub is None:
             self.fantasy_hub = logic.open_spreadsheet(to_use=['fantasy_hub'])
+        self.progress_bar.setVisible(False)
         spreadsheet = self.fantasy_hub
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
@@ -464,6 +468,7 @@ class MyWindow(QMainWindow):
     def update_table_points(self):
         if self.prev_matches is None:
             self.prev_matches = logic.open_spreadsheet(use_prev=True, only_use_prev=True)
+        self.progress_bar.setVisible(False)
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
         week_date = self.matchup_dates[week_index]
