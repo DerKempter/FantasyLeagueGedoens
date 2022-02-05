@@ -215,7 +215,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
 
     spread_string_builder_lec = ['65', '124']
     spread_string_builder_lcs = ['81', '156']
-    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
 
     spread_string_index = spread_string_builder[week_index]
     spread_string_lec = f"D{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
