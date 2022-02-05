@@ -24,6 +24,7 @@ class MyWindow(QMainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
 
+
         self.threadpool = QThreadPool()
         print(f"Multithreading with maximum {self.threadpool.maxThreadCount()} threads")
 
@@ -46,11 +47,24 @@ class MyWindow(QMainWindow):
         self.matchup_dates = None
         self.weeks = None
         self.week_selector = None
-        self.setGeometry(0, 0, 500, 500)
+        self.setGeometry(100, 100, 500, 500)
         self.setWindowTitle("FantasyLeague")
         self.update_matchup_points_button = None
         self.week_label = None
         self.show_matchup_points_button = None
+        self.triples = None
+        self.trigger_multi_kill_ui_btn = None
+        self.turrets = None
+        self.heralds = None
+        self.barons = None
+        self.pentas = None
+        self.drakes = None
+        self.quadras = None
+        self.doubles = None
+        self.drake_soul = None
+        self.win_under_thirty = None
+        self.first_turret = None
+        self.first_blood = None
         self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = None, None, None, None
         self.init_ui()
 
@@ -137,6 +151,63 @@ class MyWindow(QMainWindow):
         self.update_player_agency.adjustSize()
         self.update_player_agency.clicked.connect(self.update_player_agency_btn_clicked_thread)
         self.update_player_agency.move(50, 200)
+
+        self.trigger_multi_kill_ui_btn = QtWidgets.QPushButton(self)
+        self.trigger_multi_kill_ui_btn.setText('Open Bonuspoints UI for selected player')
+        self.trigger_multi_kill_ui_btn.adjustSize()
+        self.trigger_multi_kill_ui_btn.clicked.connect(self.init_multi_kill_ui)
+
+        self.doubles = QtWidgets.QSpinBox(self)
+        self.doubles.setVisible(False)
+        self.triples = QtWidgets.QSpinBox(self)
+        self.triples.setVisible(False)
+        self.quadras = QtWidgets.QSpinBox(self)
+        self.quadras.setVisible(False)
+        self.pentas = QtWidgets.QSpinBox(self)
+        self.pentas.setVisible(False)
+
+        self.doubles_label = QtWidgets.QLabel(self)
+        self.doubles_label.setVisible(False)
+        self.triples_label = QtWidgets.QLabel(self)
+        self.triples_label.setVisible(False)
+        self.quadras_label = QtWidgets.QLabel(self)
+        self.quadras_label.setVisible(False)
+        self.pentas_label = QtWidgets.QLabel(self)
+        self.pentas_label.setVisible(False)
+
+        self.drakes = QtWidgets.QSpinBox(self)
+        self.drakes.setVisible(False)
+        self.barons = QtWidgets.QSpinBox(self)
+        self.barons.setVisible(False)
+        self.heralds = QtWidgets.QSpinBox(self)
+        self.heralds.setVisible(False)
+        self.turrets = QtWidgets.QSpinBox(self)
+        self.turrets.setVisible(False)
+        self.first_blood = QtWidgets.QCheckBox(self)
+        self.first_blood.setVisible(False)
+        self.first_turret = QtWidgets.QCheckBox(self)
+        self.first_turret.setVisible(False)
+        self.win_under_thirty = QtWidgets.QCheckBox(self)
+        self.win_under_thirty.setVisible(False)
+        self.drake_soul = QtWidgets.QCheckBox(self)
+        self.drake_soul.setVisible(False)
+
+        self.drakes_label = QtWidgets.QLabel(self)
+        self.drakes_label.setVisible(False)
+        self.barons_label = QtWidgets.QLabel(self)
+        self.barons_label.setVisible(False)
+        self.heralds_label = QtWidgets.QLabel(self)
+        self.heralds_label.setVisible(False)
+        self.turrets_label = QtWidgets.QLabel(self)
+        self.turrets_label.setVisible(False)
+        self.first_blood_label = QtWidgets.QLabel(self)
+        self.first_blood_label.setVisible(False)
+        self.first_turret_label = QtWidgets.QLabel(self)
+        self.first_turret_label.setVisible(False)
+        self.win_under_thirty_label = QtWidgets.QLabel(self)
+        self.win_under_thirty_label.setVisible(False)
+        self.drake_soul_label = QtWidgets.QLabel(self)
+        self.drake_soul_label.setVisible(False)
 
         # Deprecated
         # self.day_label = QtWidgets.QLabel(self)
@@ -456,6 +527,156 @@ class MyWindow(QMainWindow):
             week_dates.append(week_date)
         self.signals.get_dates_lists.emit(weeks, week_dates)
         return weeks, week_dates
+
+    def init_multi_kill_ui(self):
+        # self.setGeometry(100, 100, 800, 500)
+
+        player_to_update = self.player_selector_to_update.currentText()
+        league_to_update = self.player_league_cb.currentText()
+        if 'LEC' in league_to_update:
+            league_to_update = 'lec'
+        elif 'LCS' in league_to_update:
+            league_to_update = 'lcs'
+        else:
+            league_to_update = ""
+            return 1
+
+        is_team = False
+        if player_to_update in self.lec_teams or player_to_update in self.lcs_teams:
+            is_team = True
+
+        if is_team:
+
+            self.doubles.setVisible(False)
+
+            self.triples.setVisible(False)
+
+            self.quadras.setVisible(False)
+
+            self.pentas.setVisible(False)
+
+            self.doubles_label.setVisible(False)
+
+            self.triples_label.setVisible(False)
+
+            self.quadras_label.setVisible(False)
+
+            self.pentas_label.setVisible(False)
+
+            self.drakes.setVisible(True)
+            self.drakes.adjustSize()
+            self.drakes.move(50, 250)
+
+            self.barons.setVisible(True)
+            self.barons.adjustSize()
+            self.barons.move(700, 100)
+
+            self.heralds.setVisible(True)
+            self.heralds.adjustSize()
+            self.heralds.move(550, 150)
+
+            self.turrets.setVisible(True)
+            self.turrets.adjustSize()
+            self.turrets.move(700, 150)
+
+            self.first_blood.setVisible(True)
+            self.first_blood.adjustSize()
+            self.first_blood.move(550, 200)
+
+            self.first_turret.setVisible(True)
+            self.first_turret.adjustSize()
+            self.first_turret.move(700, 200)
+
+            self.win_under_thirty.setVisible(True)
+            self.win_under_thirty.adjustSize()
+            self.win_under_thirty.move(550, 250)
+
+            self.drake_soul.setVisible(True)
+            self.drake_soul.adjustSize()
+            self.drake_soul.move(700, 250)
+
+            self.drakes_label.setVisible(True)
+            self.drakes_label.move(450, 100)
+            self.drakes_label.setText('Drakes')
+
+            self.barons_label.setVisible(True)
+            self.barons_label.move(600, 100)
+            self.barons_label.setText('Barons')
+
+            self.heralds_label.setVisible(True)
+            self.heralds_label.move(450, 150)
+            self.heralds_label.setText('Heralds')
+
+            self.turrets_label.setVisible(True)
+            self.turrets_label.move(600, 150)
+            self.turrets_label.setText('Turrets')
+
+            self.first_blood_label.setVisible(True)
+            self.first_blood_label.move(450, 200)
+            self.first_blood_label.setText('First Blood?')
+
+            self.first_turret_label.setVisible(True)
+            self.first_turret_label.move(600, 200)
+            self.first_turret_label.setText('First Turret?')
+
+            self.win_under_thirty_label.setVisible(True)
+            self.win_under_thirty_label.move(450, 250)
+            self.win_under_thirty_label.setText('Win under 30?')
+
+            self.drake_soul_label.setVisible(True)
+            self.drake_soul_label.move(600, 250)
+            self.drake_soul_label.setText('Drake Soul?')
+
+        if not is_team:
+            self.drakes.setVisible(False)
+            self.barons.setVisible(False)
+            self.heralds.setVisible(False)
+            self.turrets.setVisible(False)
+            self.first_blood.setVisible(False)
+            self.first_turret.setVisible(False)
+            self.win_under_thirty.setVisible(False)
+            self.drake_soul.setVisible(False)
+
+            self.drakes_label.setVisible(False)
+            self.barons_label.setVisible(False)
+            self.heralds_label.setVisible(False)
+            self.turrets_label.setVisible(False)
+            self.first_blood_label.setVisible(False)
+            self.first_turret_label.setVisible(False)
+            self.win_under_thirty_label.setVisible(False)
+            self.drake_soul_label.setVisible(False)
+
+            self.doubles.setVisible(True)
+            self.doubles.adjustSize()
+            self.doubles.move(550, 100)
+
+            self.triples.setVisible(True)
+            self.triples.adjustSize()
+            self.triples.move(700, 100)
+
+            self.quadras.setVisible(True)
+            self.quadras.adjustSize()
+            self.quadras.move(550, 150)
+
+            self.pentas.setVisible(True)
+            self.pentas.adjustSize()
+            self.pentas.move(700, 150)
+
+            self.doubles_label.setVisible(True)
+            self.doubles_label.move(450, 100)
+            self.doubles_label.setText('Double Kills')
+
+            self.triples_label.setVisible(True)
+            self.triples_label.move(600, 100)
+            self.triples_label.setText('Triple Kills')
+
+            self.quadras_label.setVisible(True)
+            self.quadras_label.move(450, 150)
+            self.quadras_label.setText('Quadra Kills')
+
+            self.pentas_label.setVisible(True)
+            self.pentas_label.move(600, 150)
+            self.pentas_label.setText('Penta Kills')
 
 
 class ScrollLabel(QScrollArea):
