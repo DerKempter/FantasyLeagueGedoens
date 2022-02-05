@@ -210,13 +210,13 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
                             )
 
     if response is None:
-        return f"Wrong api-request."
+        return [f"Wrong api-request.", players_list]
 
     player_data = response.get('cargoquery')
 
     spread_string_builder_lec = ['65', '124']
     spread_string_builder_lcs = ['81', '156']
-    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
 
     spread_string_index = spread_string_builder[week_index]
     spread_string_lec = f"D{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
@@ -227,8 +227,8 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
     temp_sum = 0
     games_played_so_far = len(player_data)
     if len(player_data) == 0:
-        games_played_so_far = 1
-        return f"No New Games Found for {player_string}"
+        return_string = f"No New Games Found for {player_string}"
+        return return_string, players_list
 
     lec_players, lcs_players = spreadsheets
     if players_list is None and league == "lec":
@@ -285,10 +285,11 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
     else:
         return_string = f"No New Games Found for {player_string}"
     print(return_string)
-    spread_string_update = spread_string.replace('D', spread_string_index)
     if update_player_list and league == 'lec':
+        spread_string_update = spread_string_lec.replace('D', spread_string_index)
         lec_players.update(spread_string_update, score_list_to_update)
     elif update_player_list and league == 'lcs':
+        spread_string_update = spread_string_lcs.replace('D', spread_string_index)
         lcs_players.update(spread_string_update, score_list_to_update)
     # return return_string
     return [return_string, players_list]

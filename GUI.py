@@ -322,9 +322,10 @@ class MyWindow(QMainWindow):
         temp_update_string = return_string + f"Updating Points for {player_to_update}"
         self.text_output_label.setText(temp_update_string)
 
-        return_string = logic.update_single_player_points_for_week(player_to_update, week_date_to_update,
-                                                                   week_index, league_to_update,
-                                                                   [self.lec_players, self.lcs_players], is_team)
+        return_string, players_list = logic.update_single_player_points_for_week(player_to_update, week_date_to_update,
+                                                                                 week_index, league_to_update,
+                                                                                 [self.lec_players, self.lcs_players],
+                                                                                 is_team)
         self.text_output_label.setText(return_string)
 
     def player_league_combobox_changed_action_thread(self, index):
