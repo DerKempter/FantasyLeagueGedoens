@@ -269,7 +269,7 @@ class MyWindow(QMainWindow):
                                                                       update_player_list)
             temp_players_list = dummy_return[1]
             temp_return_string = dummy_return[0]
-            if not temp_return_string.startswith('No New Games Found for'):
+            if not temp_return_string.startswith('N'):
                 return_string += temp_return_string
                 return_string += "\n"
             self.text_output_label.setText(return_string)
