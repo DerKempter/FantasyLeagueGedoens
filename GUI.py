@@ -238,6 +238,9 @@ class MyWindow(QMainWindow):
         week_index = self.weeks.index(sel_week)
         week_date_to_update = self.matchup_dates[week_index]
 
+        temp_players_list = None
+        update_player_list = False
+
         for player in target_player_list:
             temp_update_string = return_string + f"Updating Points for {player}..."
             self.text_output_label.setText(temp_update_string)
@@ -252,10 +255,20 @@ class MyWindow(QMainWindow):
                 return_string = "Wrong league selected."
                 break
 
-            temp_return_string: str = logic.update_single_player_points_for_week(player_to_update, week_date_to_update,
-                                                                                 week_index, league_to_update,
-                                                                                 [self.lec_players, self.lcs_players],
-                                                                                 is_team)
+            if target_player_list[-1] == player:
+                update_player_list = True
+
+            dummy_return = logic.update_single_player_points_for_week(player_to_update,
+                                                                      week_date_to_update,
+                                                                      week_index,
+                                                                      league_to_update,
+                                                                      [self.lec_players,
+                                                                       self.lcs_players],
+                                                                      is_team,
+                                                                      temp_players_list,
+                                                                      update_player_list)
+            temp_players_list = dummy_return[1]
+            temp_return_string = dummy_return[0]
             if not temp_return_string.startswith('No New Games Found for'):
                 return_string += temp_return_string
                 return_string += "\n"

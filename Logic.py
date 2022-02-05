@@ -166,7 +166,8 @@ def get_game_stats_and_update_spread(date_string: str, week_index: int, tourname
 
 
 def update_single_player_points_for_week(player_string: str, date_string: str, week_index: int,
-                                         league: str, spreadsheets: [], is_team: bool = False):
+                                         league: str, spreadsheets: [], is_team: bool = False, players_list=None,
+                                         update_player_list: bool = False):
     hour_string = "00:00:00"
     date_arr = [date_string, hour_string]
     date_time_string = ' '.join(date_arr)
@@ -223,7 +224,6 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
 
     spread_string = ""
     spread_string_update = ""
-    players_list = []
     temp_sum = 0
     games_played_so_far = len(player_data)
     if len(player_data) == 0:
@@ -231,14 +231,14 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
         return f"No New Games Found for {player_string}"
 
     lec_players, lcs_players = spreadsheets
-    if league == "lec":
+    if players_list is None and league == "lec":
         lec_players: worksheet = lec_players
         spread_string = spread_string_lec
         players_list = lec_players.get(spread_string)
-    elif league == "lcs":
+    elif players_list is None and league == "lcs":
         spread_string = spread_string_lcs
         players_list = lcs_players.get(spread_string)
-    else:
+    elif players_list is None:
         return f"wrong league String provided: {league}. \nAccepted strings are 'lec' and 'lcs'."
 
     for game_dict_key in player_data:
@@ -267,7 +267,10 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
                 player[-1] = temp_sum
                 score_list_to_update.append([temp_sum])
         else:
-            score_list_to_update.append([float(player[-1].replace(',', '.'))])
+            if type(player[-1]) is str:
+                score_list_to_update.append([float(player[-1].replace(',', '.'))])
+            elif type(player[-1]) is float:
+                score_list_to_update.append([player[-1]])
         if type(player[-1]) == str:
             player[-1] = float(player[-1].replace(',', '.'))
 
@@ -283,11 +286,12 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
         return_string = f"No New Games Found for {player_string}"
     print(return_string)
     spread_string_update = spread_string.replace('D', spread_string_index)
-    if league == 'lec':
+    if update_player_list and league == 'lec':
         lec_players.update(spread_string_update, score_list_to_update)
-    elif league == 'lcs':
+    elif update_player_list and league == 'lcs':
         lcs_players.update(spread_string_update, score_list_to_update)
-    return return_string
+    # return return_string
+    return [return_string, players_list]
 
 
 def calc_points(game_dictionary, category='player', team=None):
