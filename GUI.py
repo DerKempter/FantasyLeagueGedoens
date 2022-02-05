@@ -84,25 +84,11 @@ class MyWindow(QMainWindow):
         self.week_label.adjustSize()
         self.week_label.move(50, 35)
 
-        # Deprecated
-        # self.day_label = QtWidgets.QLabel(self)
-        # self.day_label.setText("Select Weekday for updating")
-        # self.day_label.adjustSize()
-        # self.day_label.move(50, 85)
-        # self.day_label.setVisible(False)
-
         self.week_selector = QtWidgets.QComboBox(self)
         self.week_selector.move(50, 50)
         self.week_selector.adjustSize()
         self.week_selector.addItems(['Loading...'])
         self.gen_week_for_dropdown_thread()
-
-        # Deprecated
-        # self.day_selector = QtWidgets.QComboBox(self)
-        # self.day_selector.addItems(['1', '2', '3', '4'])
-        # self.day_selector.adjustSize()
-        # self.day_selector.move(50, 100)
-        # self.day_selector.setVisible(False)
 
         self.update_matchup_points_button = QtWidgets.QPushButton(self)
         self.update_matchup_points_button.setText("Update Matchups")
@@ -116,58 +102,11 @@ class MyWindow(QMainWindow):
         self.show_matchup_points_button.clicked.connect(self.show_matchup_points)
         self.show_matchup_points_button.move(250, 50)
 
-        # Deprecated
-        # self.update_table_points_button = QtWidgets.QPushButton(self)
-        # self.update_table_points_button.setText("Update Player-Tables")
-        # self.update_table_points_button.adjustSize()
-        # self.update_table_points_button.clicked.connect(self.update_table_points_thread)
-        # self.update_table_points_button.move(50, 225)
-        # self.update_table_points_button.setVisible(False)
-
         self.text_output_label = ScrollLabel(self)
         self.text_output_label.setText("")
         self.text_output_label.move(400, 50)
         self.text_output_label.resize(275, 400)
         self.resize(750, 500)
-
-        # Deprecated
-        # self.lec_lcs_cb = QtWidgets.QComboBox(self)
-        # self.lec_lcs_cb.addItems(["don't use specific Teams", 'use LEC-Teams', 'use LCS-Teams'])
-        # self.lec_lcs_cb.adjustSize()
-        # self.lec_lcs_cb.currentIndexChanged.connect(self.lec_lcs_combobox_changed_action_thread)
-        # self.lec_lcs_cb.move(50, 125)
-        # self.lec_lcs_cb.setVisible(False)
-
-        # Deprecated
-        # self.team_cb = QtWidgets.QCheckBox(self)
-        # self.team_cb.setText("update Teams")
-        # self.team_cb.adjustSize()
-        # self.team_cb.move(50, 185)
-        # self.team_cb.setVisible(False)
-
-        # Deprecated
-        # self.player_cb = QtWidgets.QCheckBox(self)
-        # self.player_cb.setText("update Players")
-        # self.player_cb.adjustSize()
-        # self.player_cb.move(150, 185)
-        # self.player_cb.setVisible(False)
-
-        # Deprecated
-        # self.tournament_cb = QtWidgets.QComboBox(self)
-        # self.tournament_cb.addItems(['LEC 2022 Spring', 'LCS 2022 Spring', 'LCS 2022 Lock In'])
-        # self.tournament_cb.adjustSize()
-        # self.tournament_cb.move(50, 205)
-        # self.tournament_cb.setVisible(False)
-
-        # Deprecated
-        # self.lec_lcs_team_selector_team_1 = QtWidgets.QComboBox(self)
-        # self.lec_lcs_team_selector_team_1.move(50, 150)
-        # self.lec_lcs_team_selector_team_1.setVisible(False)
-
-        # Deprecated
-        # self.lec_lcs_team_selector_team_2 = QtWidgets.QComboBox(self)
-        # self.lec_lcs_team_selector_team_2.move(150, 150)
-        # self.lec_lcs_team_selector_team_2.setVisible(False)
 
         self.player_selector_to_update = QtWidgets.QComboBox(self)
         self.player_selector_to_update.move(220, 85)
@@ -198,6 +137,59 @@ class MyWindow(QMainWindow):
         self.update_player_agency.adjustSize()
         self.update_player_agency.clicked.connect(self.update_player_agency_btn_clicked_thread)
         self.update_player_agency.move(50, 200)
+
+        # Deprecated
+        # self.day_label = QtWidgets.QLabel(self)
+        # self.day_label.setText("Select Weekday for updating")
+        # self.day_label.adjustSize()
+        # self.day_label.move(50, 85)
+        # self.day_label.setVisible(False)
+
+        # self.day_selector = QtWidgets.QComboBox(self)
+        # self.day_selector.addItems(['1', '2', '3', '4'])
+        # self.day_selector.adjustSize()
+        # self.day_selector.move(50, 100)
+        # self.day_selector.setVisible(False)
+
+        # self.update_table_points_button = QtWidgets.QPushButton(self)
+        # self.update_table_points_button.setText("Update Player-Tables")
+        # self.update_table_points_button.adjustSize()
+        # self.update_table_points_button.clicked.connect(self.update_table_points_thread)
+        # self.update_table_points_button.move(50, 225)
+        # self.update_table_points_button.setVisible(False)
+
+        # self.lec_lcs_cb = QtWidgets.QComboBox(self)
+        # self.lec_lcs_cb.addItems(["don't use specific Teams", 'use LEC-Teams', 'use LCS-Teams'])
+        # self.lec_lcs_cb.adjustSize()
+        # self.lec_lcs_cb.currentIndexChanged.connect(self.lec_lcs_combobox_changed_action_thread)
+        # self.lec_lcs_cb.move(50, 125)
+        # self.lec_lcs_cb.setVisible(False)
+
+        # self.team_cb = QtWidgets.QCheckBox(self)
+        # self.team_cb.setText("update Teams")
+        # self.team_cb.adjustSize()
+        # self.team_cb.move(50, 185)
+        # self.team_cb.setVisible(False)
+
+        # self.player_cb = QtWidgets.QCheckBox(self)
+        # self.player_cb.setText("update Players")
+        # self.player_cb.adjustSize()
+        # self.player_cb.move(150, 185)
+        # self.player_cb.setVisible(False)
+
+        # self.tournament_cb = QtWidgets.QComboBox(self)
+        # self.tournament_cb.addItems(['LEC 2022 Spring', 'LCS 2022 Spring', 'LCS 2022 Lock In'])
+        # self.tournament_cb.adjustSize()
+        # self.tournament_cb.move(50, 205)
+        # self.tournament_cb.setVisible(False)
+
+        # self.lec_lcs_team_selector_team_1 = QtWidgets.QComboBox(self)
+        # self.lec_lcs_team_selector_team_1.move(50, 150)
+        # self.lec_lcs_team_selector_team_1.setVisible(False)
+
+        # self.lec_lcs_team_selector_team_2 = QtWidgets.QComboBox(self)
+        # self.lec_lcs_team_selector_team_2.move(150, 150)
+        # self.lec_lcs_team_selector_team_2.setVisible(False)
 
     def update_player_agency_btn_clicked_thread(self):
         kwargs = {}
