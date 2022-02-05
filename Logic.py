@@ -167,7 +167,7 @@ def get_game_stats_and_update_spread(date_string: str, week_index: int, tourname
 
 def update_single_player_points_for_week(player_string: str, date_string: str, week_index: int,
                                          league: str, spreadsheets: [], is_team: bool = False, players_list=None,
-                                         update_player_list: bool = False):
+                                         update_player_list: bool = True):
     hour_string = "00:00:00"
     date_arr = [date_string, hour_string]
     date_time_string = ' '.join(date_arr)
@@ -226,7 +226,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
     spread_string_update = ""
     temp_sum = 0
     games_played_so_far = len(player_data)
-    if len(player_data) == 0:
+    if len(player_data) == 0 and not update_player_list:
         return_string = f"No New Games Found for {player_string}"
         return return_string, players_list
 
@@ -249,8 +249,9 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
             points = calc_points(game_dict, 'player')[0][0]
         temp_sum += points
 
-    temp_sum = temp_sum/games_played_so_far*2
-    temp_sum = float("{:.2f}".format(temp_sum))
+    if len(player_data) > 0:
+        temp_sum = temp_sum/games_played_so_far*2
+        temp_sum = float("{:.2f}".format(temp_sum))
 
     old_points = 0.0
 
@@ -441,7 +442,7 @@ def update_points_for_matchup(spreadsheets: [], match_week_date, sel_week: str, 
                 if player_string == player_name:
                     temp_sum += float(player_full_score.replace(',', '.'))
                     break
-            for j in range(len(lec_players_list)):
+            for j in range(len(lcs_players_list)):
                 player_name = lcs_players_list[j][0]
                 player_full_score = lcs_players_list[j][-1]
                 if player_string == player_name:
@@ -698,6 +699,63 @@ def update_player_agency(ws: []):
     lcs_players.update(spread_string_lcs, lec_lcs_players_list[1])
 
     return changed_agencies
+
+
+def grab_player_and_points_for_user(ws: [], user, coordinates: str, week_index: int):
+    fantasy_hub, lec_players, lcs_players = ws
+
+    spread_string_builder_lec = ['2', '61']
+    spread_string_builder_lcs = ['2', '77']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+
+    spread_string_index = spread_string_builder[week_index]
+    spread_string_lec = f"A{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
+    spread_string_lcs = f"A{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}"
+
+    lec_players_list = lec_players.get(spread_string_lec)
+    lcs_players_list = lcs_players.get(spread_string_lcs)
+
+    players_of_user = fantasy_hub.get(coordinates)
+    res_arr = []
+    temp_sum = 0
+
+    for player in players_of_user:
+        player_string = player[0]
+        if players_of_user.index(player) < 2:
+            res_arr.append(player_string)
+            continue
+
+        for j in range(len(lec_players_list)):
+            player_name = lec_players_list[j][0]
+            player_full_score = lec_players_list[j][-1]
+            if player_string == player_name:
+                res_arr.append([player, player_full_score])
+                temp_sum += float(player_full_score.replace(',', '.'))
+                break
+        for j in range(len(lcs_players_list)):
+            player_name = lcs_players_list[j][0]
+            player_full_score = lcs_players_list[j][-1]
+            if player_string == player_name:
+                res_arr.append([player, player_full_score])
+                temp_sum += float(player_full_score.replace(',', '.'))
+                break
+    res_arr.append(temp_sum)
+    return generate_res_string_single_player_week(res_arr, user)
+
+
+def generate_res_string_single_player_week(res_array: [], user) -> str:
+    res_string = ""
+    res_string += f"Current Points for {user} in the selected week:\n"
+    res_string += f"{res_array[1]}\n\n"
+    for player_part in res_array:
+        if res_array.index(player_part) in [0, 1] or player_part is res_array[-1]:
+            continue
+        player, score = player_part
+        res_string += f"{player[0]}: {score} Points.\n"
+    res_string += f"\nCurrent sum-total for {user} is {res_array[-1]}\n"
+
+    return res_string
+
 
 def get_game_stats(date_string: str, tournament: str):
     date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()

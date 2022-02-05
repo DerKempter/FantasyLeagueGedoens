@@ -53,6 +53,7 @@ class MyWindow(QMainWindow):
         self.show_matchup_points_button = None
         self.user_selector_cb = None
         self.show_user_player_points_for_week_btn = None
+        self.user_names = None
         self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = None, None, None, None
         self.init_ui()
 
@@ -499,6 +500,7 @@ class MyWindow(QMainWindow):
         if len(names) > 0:
             self.user_selector_cb.addItems(names)
             self.user_selector_cb.adjustSize()
+            self.user_names = names
         else:
             self.user_selector_cb.addItems(['Error'])
             self.user_selector_cb.adjustSize()
@@ -513,9 +515,19 @@ class MyWindow(QMainWindow):
     def show_user_player_points_for_week_btn_clicked(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
+        sel_week = self.week_selector.currentText()
+        week_index = self.weeks.index(sel_week)
         name_coordinates_x = ['M', 'N', 'O', 'P', 'Q', 'R']
         name_coordinates_y = ['3', '11']
-        user_index = self.user_selector_cb.currentText()
+        user_string = self.user_selector_cb.currentText()
+        user_index = self.user_names.index(user_string)
+        name_player_coordinates = f"{name_coordinates_x[user_index]}{name_coordinates_y[0]}:" \
+                                  f"{name_coordinates_x[user_index]}{name_coordinates_y[1]}"
+        worksheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
+        return_string = logic.grab_player_and_points_for_user(worksheets, user_string, name_player_coordinates,
+                                                              week_index)
+
+        self.text_output_label.setText(return_string)
 
 
 class ScrollLabel(QScrollArea):
