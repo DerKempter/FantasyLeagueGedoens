@@ -51,6 +51,7 @@ class MyWindow(QMainWindow):
         self.update_matchup_points_button = None
         self.week_label = None
         self.show_matchup_points_button = None
+        self.progress_bar = None
         self.user_selector_cb = None
         self.show_user_player_points_for_week_btn = None
         self.user_names = None
@@ -152,6 +153,12 @@ class MyWindow(QMainWindow):
         self.show_user_player_points_for_week_btn.adjustSize()
         self.show_user_player_points_for_week_btn.move(50, 300)
         self.show_user_player_points_for_week_btn.clicked.connect(self.show_user_player_points_for_week_btn_clicked)
+
+        self.progress_bar = QtWidgets.QProgressBar(self)
+        self.progress_bar.setMaximum(100)
+        self.progress_bar.move(400, 455)
+        self.progress_bar.resize(self.text_output_label.frameGeometry().width(), 25)
+        self.progress_bar.setVisible(False)
 
         # Deprecated
         # self.day_label = QtWidgets.QLabel(self)
@@ -256,7 +263,13 @@ class MyWindow(QMainWindow):
         temp_players_list = None
         update_player_list = False
 
+        progress = 0
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setMaximum(len(target_player_list))
+        self.progress_bar.setValue(progress)
+
         for player in target_player_list:
+            progress += 1
             temp_update_string = return_string + f"Updating Points for {player}..."
             self.text_output_label.setText(temp_update_string)
 
@@ -287,6 +300,7 @@ class MyWindow(QMainWindow):
             if not temp_return_string.startswith('N'):
                 return_string += temp_return_string
                 return_string += "\n"
+            self.progress_bar.setValue(progress)
             self.text_output_label.setText(return_string)
 
         if return_string != "":
