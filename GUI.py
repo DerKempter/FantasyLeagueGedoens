@@ -51,6 +51,7 @@ class MyWindow(QMainWindow):
         self.update_matchup_points_button = None
         self.week_label = None
         self.show_matchup_points_button = None
+        self.progress_bar = None
         self.user_selector_cb = None
         self.show_user_player_points_for_week_btn = None
         self.user_names = None
@@ -153,6 +154,12 @@ class MyWindow(QMainWindow):
         self.show_user_player_points_for_week_btn.move(50, 300)
         self.show_user_player_points_for_week_btn.clicked.connect(self.show_user_player_points_for_week_btn_clicked)
 
+        self.progress_bar = QtWidgets.QProgressBar(self)
+        self.progress_bar.setMaximum(100)
+        self.progress_bar.move(400, 455)
+        self.progress_bar.resize(self.text_output_label.frameGeometry().width(), 25)
+        self.progress_bar.setVisible(False)
+
         # Deprecated
         # self.day_label = QtWidgets.QLabel(self)
         # self.day_label.setText("Select Weekday for updating")
@@ -215,6 +222,7 @@ class MyWindow(QMainWindow):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
         worksheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
+        self.progress_bar.setVisible(False)
         return_string = logic.update_player_agency(worksheets)
 
         if return_string == "":
@@ -256,7 +264,13 @@ class MyWindow(QMainWindow):
         temp_players_list = None
         update_player_list = False
 
+        progress = 0
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setMaximum(len(target_player_list))
+        self.progress_bar.setValue(progress)
+
         for player in target_player_list:
+            progress += 1
             temp_update_string = return_string + f"Updating Points for {player}..."
             self.text_output_label.setText(temp_update_string)
 
@@ -287,6 +301,7 @@ class MyWindow(QMainWindow):
             if not temp_return_string.startswith('N'):
                 return_string += temp_return_string
                 return_string += "\n"
+            self.progress_bar.setValue(progress)
             self.text_output_label.setText(return_string)
 
         if return_string != "":
@@ -313,6 +328,7 @@ class MyWindow(QMainWindow):
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
         if self.week_selector.currentText().startswith('loading'):
             return self.wait_for_week_dropdown()
+        self.progress_bar.setVisible(False)
         player_to_update = self.player_selector_to_update.currentText()
         league_to_update = self.player_league_cb.currentText()
         return_string = ""
@@ -405,6 +421,7 @@ class MyWindow(QMainWindow):
     def update_matchup_points(self):
         if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
             self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
+        self.progress_bar.setVisible(False)
         spreadsheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
@@ -432,6 +449,7 @@ class MyWindow(QMainWindow):
     def show_matchup_points(self):
         if self.fantasy_hub is None:
             self.fantasy_hub = logic.open_spreadsheet(to_use=['fantasy_hub'])
+        self.progress_bar.setVisible(False)
         spreadsheet = self.fantasy_hub
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
@@ -450,6 +468,7 @@ class MyWindow(QMainWindow):
     def update_table_points(self):
         if self.prev_matches is None:
             self.prev_matches = logic.open_spreadsheet(use_prev=True, only_use_prev=True)
+        self.progress_bar.setVisible(False)
         week = self.week_selector.currentText()
         week_index = self.weeks.index(week)
         week_date = self.matchup_dates[week_index]
