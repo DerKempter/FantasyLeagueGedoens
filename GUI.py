@@ -51,6 +51,9 @@ class MyWindow(QMainWindow):
         self.update_matchup_points_button = None
         self.week_label = None
         self.show_matchup_points_button = None
+        self.user_selector_cb = None
+        self.show_user_player_points_for_week_btn = None
+        self.user_names = None
         self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = None, None, None, None
         self.init_ui()
 
@@ -86,8 +89,8 @@ class MyWindow(QMainWindow):
 
         self.week_selector = QtWidgets.QComboBox(self)
         self.week_selector.move(50, 50)
-        self.week_selector.adjustSize()
         self.week_selector.addItems(['Loading...'])
+        self.week_selector.adjustSize()
         self.gen_week_for_dropdown_thread()
 
         self.update_matchup_points_button = QtWidgets.QPushButton(self)
@@ -137,6 +140,18 @@ class MyWindow(QMainWindow):
         self.update_player_agency.adjustSize()
         self.update_player_agency.clicked.connect(self.update_player_agency_btn_clicked_thread)
         self.update_player_agency.move(50, 200)
+
+        self.user_selector_cb = QtWidgets.QComboBox(self)
+        self.user_selector_cb.addItems(['Loading...'])
+        self.user_selector_cb.adjustSize()
+        self.user_selector_cb.move(50, 275)
+        self.fill_user_selector_cb_thread()
+
+        self.show_user_player_points_for_week_btn = QtWidgets.QPushButton(self)
+        self.show_user_player_points_for_week_btn.setText('Show Points From All Players For Selected User')
+        self.show_user_player_points_for_week_btn.adjustSize()
+        self.show_user_player_points_for_week_btn.move(50, 300)
+        self.show_user_player_points_for_week_btn.clicked.connect(self.show_user_player_points_for_week_btn_clicked)
 
         # Deprecated
         # self.day_label = QtWidgets.QLabel(self)
@@ -470,6 +485,49 @@ class MyWindow(QMainWindow):
             week_dates.append(week_date)
         self.signals.get_dates_lists.emit(weeks, week_dates)
         return weeks, week_dates
+
+    def fill_user_selector_cb(self):
+        if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
+            self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
+        name_coord_x = ['M', 'N', 'O', 'P', 'Q', 'R']
+        name_coord_y = '3'
+        names = []
+        for letter in name_coord_x:
+            coord = letter + name_coord_y
+            user_name = self.fantasy_hub.acell(coord).value
+            names.append(user_name)
+        self.user_selector_cb.clear()
+        if len(names) > 0:
+            self.user_selector_cb.addItems(names)
+            self.user_selector_cb.adjustSize()
+            self.user_names = names
+        else:
+            self.user_selector_cb.addItems(['Error'])
+            self.user_selector_cb.adjustSize()
+            self.text_output_label.setText("Please Restart App and contact admin if it still doesn't work")
+            self.text_output_label.adjustSize()
+
+    def fill_user_selector_cb_thread(self):
+        kwargs = {}
+        worker = Threading.Worker(self.fill_user_selector_cb, **kwargs)
+        self.threadpool.start(worker)
+
+    def show_user_player_points_for_week_btn_clicked(self):
+        if self.fantasy_hub is None or self.lec_players is None or self.lcs_players is None:
+            self.fantasy_hub, self.lec_players, self.lcs_players = logic.open_spreadsheet()
+        sel_week = self.week_selector.currentText()
+        week_index = self.weeks.index(sel_week)
+        name_coordinates_x = ['M', 'N', 'O', 'P', 'Q', 'R']
+        name_coordinates_y = ['3', '11']
+        user_string = self.user_selector_cb.currentText()
+        user_index = self.user_names.index(user_string)
+        name_player_coordinates = f"{name_coordinates_x[user_index]}{name_coordinates_y[0]}:" \
+                                  f"{name_coordinates_x[user_index]}{name_coordinates_y[1]}"
+        worksheets = [self.fantasy_hub, self.lec_players, self.lcs_players]
+        return_string = logic.grab_player_and_points_for_user(worksheets, user_string, name_player_coordinates,
+                                                              week_index)
+
+        self.text_output_label.setText(return_string)
 
 
 class ScrollLabel(QScrollArea):
