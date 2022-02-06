@@ -280,7 +280,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
             if type(player[i]) == str:
                 player[i] = float(player[i].replace(',', '.'))
 
-    if old_points < temp_sum:
+    if old_points != temp_sum:
         return_string = f"updated points for Player/Team: {player_string} \nfrom {old_points} to {temp_sum}"
     else:
         return_string = f"No New Games Found for {player_string}"
