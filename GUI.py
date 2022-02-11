@@ -562,13 +562,13 @@ class MyWindow(QMainWindow):
 
     def display_current_standings_btn_clicked_thread(self):
         kwargs = {}
-        worker = Threading.Worker(self.fill_user_selector_cb, **kwargs)
+        worker = Threading.Worker(self.display_current_standings_btn_clicked, **kwargs)
         self.threadpool.start(worker)
 
     def display_current_standings_btn_clicked(self):
         if self.fantasy_hub is None:
             self.fantasy_hub = logic.open_spreadsheet(['fantasy_hub'])
-        return_string = f""
+        return_string = logic.grab_current_standings(self.fantasy_hub)
         self.text_output_label.setText(return_string)
         return return_string
 

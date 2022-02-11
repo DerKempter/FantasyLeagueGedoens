@@ -1,6 +1,7 @@
 import mwclient
 import datetime as dt
 import gspread
+import pandas as pd
 from gspread import worksheet
 
 SPREADSHEET_NAME = "High Society Kranichfeld"
@@ -755,6 +756,27 @@ def generate_res_string_single_player_week(res_array: [], user) -> str:
     res_string += f"\nCurrent sum-total for {user} is {res_array[-1]}\n"
 
     return res_string
+
+def grab_current_standings(fantasy_hub):
+    standing_coords = "V36:Y42"
+    raw_standings_grab = fantasy_hub.get(standing_coords)
+    raw_standings = raw_standings_grab[1:]
+    converted_standings = []
+    for row in raw_standings:
+        temp_row = []
+        for cell in row:
+            try:
+                cell = float(cell.replace(',', '.'))
+                temp_row.append(cell)
+            except ValueError as e:
+                temp_row.append(cell)
+                continue
+        converted_standings.append(temp_row)
+    raw_standings_colls = raw_standings_grab[0]
+    standings_df = pd.DataFrame(converted_standings, columns=raw_standings_colls)
+    standings = standings_df.sort_values([raw_standings_colls[2], raw_standings_colls[1]], ascending=[False, False])
+    return_string = standings.to_string(index=False)
+    return return_string
 
 
 def get_game_stats(date_string: str, tournament: str):
