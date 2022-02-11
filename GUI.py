@@ -55,6 +55,7 @@ class MyWindow(QMainWindow):
         self.user_selector_cb = None
         self.show_user_player_points_for_week_btn = None
         self.user_names = None
+        self.pass_phrase_text_field = None
         self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = None, None, None, None
         self.init_ui()
 
@@ -159,6 +160,11 @@ class MyWindow(QMainWindow):
         self.progress_bar.move(400, 455)
         self.progress_bar.resize(self.text_output_label.frameGeometry().width(), 25)
         self.progress_bar.setVisible(False)
+
+        self.pass_phrase_text_field = QtWidgets.QLineEdit(self)
+        self.pass_phrase_text_field.setGeometry(50, 450, 75, 25)
+        self.pass_phrase_text_field.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.pass_phrase_text_field
 
         # Deprecated
         # self.day_label = QtWidgets.QLabel(self)
@@ -433,10 +439,11 @@ class MyWindow(QMainWindow):
                 week_string = self.fantasy_hub.acell(f"{Logic.inc_letter(letter, 1)}{number}").value
                 week_date = dt.datetime.strptime(week_string, "%Y-%m-%d")
                 break
-        if (today - week_date) > datetime.timedelta(days=3):
-            return_string = f'Week {week_index + 1} has closed.'
-            self.text_output_label.setText(return_string)
-            return return_string
+        if self.pass_phrase_text_field.text().lower() != 'override':
+            if (today - week_date) > datetime.timedelta(days=3):
+                return_string = f'Week {week_index + 1} has closed.'
+                self.text_output_label.setText(return_string)
+                return return_string
         print(week, week_index, self.matchup_dates[week_index])
         response = logic.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
         self.text_output_label.setText(response)
