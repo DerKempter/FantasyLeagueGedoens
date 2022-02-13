@@ -595,7 +595,8 @@ class MyWindow(QMainWindow):
         if self.fantasy_hub is None:
             self.fantasy_hub = logic.open_spreadsheet(['fantasy_hub'])
         return_string = logic.grab_current_standings(self.fantasy_hub)
-        self.text_output_label.setText(return_string)
+        # self.text_output_label.setText(return_string)
+        self.signals.update_output_label.emit(return_string)
         return return_string
 
 
