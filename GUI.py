@@ -10,7 +10,7 @@ import datetime as dt
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QScrollArea, QWidget, QVBoxLayout, QLabel
 
-__VERSION__ = '0.2.2-beta'
+__VERSION__ = '0.5.1-beta'
 
 import Threading
 
