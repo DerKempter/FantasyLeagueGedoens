@@ -58,6 +58,7 @@ class MyWindow(QMainWindow):
         self.show_user_player_points_for_week_btn = None
         self.user_names = None
         self.pass_phrase_text_field = None
+        self.display_current_standings_btn = None
         self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = None, None, None, None
         self.init_ui()
 
@@ -172,6 +173,12 @@ class MyWindow(QMainWindow):
         self.pass_phrase_text_field = QtWidgets.QLineEdit(self)
         self.pass_phrase_text_field.setGeometry(50, 450, 75, 25)
         self.pass_phrase_text_field.setEchoMode(QtWidgets.QLineEdit.Password)
+
+        self.display_current_standings_btn = QtWidgets.QPushButton(self)
+        self.display_current_standings_btn.setText('Show current Standings')
+        self.display_current_standings_btn.adjustSize()
+        self.display_current_standings_btn.move(50, 350)
+        self.display_current_standings_btn.clicked.connect(self.display_current_standings_btn_clicked_thread)
 
         # Deprecated
         # self.day_label = QtWidgets.QLabel(self)
@@ -578,6 +585,19 @@ class MyWindow(QMainWindow):
 
         # self.text_output_label.setText(return_string)
         self.signals.update_output_label.emit(return_string)
+
+    def display_current_standings_btn_clicked_thread(self):
+        kwargs = {}
+        worker = Threading.Worker(self.display_current_standings_btn_clicked, **kwargs)
+        self.threadpool.start(worker)
+
+    def display_current_standings_btn_clicked(self):
+        if self.fantasy_hub is None:
+            self.fantasy_hub = logic.open_spreadsheet(['fantasy_hub'])
+        return_string = logic.grab_current_standings(self.fantasy_hub)
+        # self.text_output_label.setText(return_string)
+        self.signals.update_output_label.emit(return_string)
+        return return_string
 
 
 class ScrollLabel(QScrollArea):
