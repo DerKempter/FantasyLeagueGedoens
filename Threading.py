@@ -21,3 +21,5 @@ class WorkerSignals(QObject):
     return_string = pyqtSignal()
     get_worksheets = pyqtSignal([])
     get_dates_lists = pyqtSignal(list, list)
+    update_output_label = pyqtSignal(str)
+    update_progress_bar = pyqtSignal(int)

@@ -31,6 +31,8 @@ class MyWindow(QMainWindow):
         self.signals.return_string.connect(self.handle_return_string_signal)
         self.signals.get_worksheets.connect(self.handle_get_worksheets_signal)
         self.signals.get_dates_lists.connect(self.handle_get_dates_lists_signal)
+        self.signals.update_output_label.connect(self.handle_update_output_label)
+        self.signals.update_progress_bar.connect(self.handle_update_progress_bar)
 
         self.curr_ws = None
         self.current_rtr_str = None
@@ -82,6 +84,12 @@ class MyWindow(QMainWindow):
         self.week_selector.clear()
         self.week_selector.addItems(self.weeks)
         self.week_selector.adjustSize()
+
+    def handle_update_output_label(self, label_str: str):
+        self.text_output_label.setText(label_str)
+
+    def handle_update_progress_bar(self, progress: int):
+        self.progress_bar.setValue(progress)
 
     def init_ui(self):
         self.week_label = QtWidgets.QLabel(self)
@@ -164,7 +172,6 @@ class MyWindow(QMainWindow):
         self.pass_phrase_text_field = QtWidgets.QLineEdit(self)
         self.pass_phrase_text_field.setGeometry(50, 450, 75, 25)
         self.pass_phrase_text_field.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.pass_phrase_text_field
 
         # Deprecated
         # self.day_label = QtWidgets.QLabel(self)
@@ -234,7 +241,8 @@ class MyWindow(QMainWindow):
         if return_string == "":
             return_string = "No Agencies updated"
 
-        self.text_output_label.setText(return_string)
+        # self.text_output_label.setText(return_string)
+        self.signals.update_output_label.emit(return_string)
 
         return return_string
 
@@ -260,7 +268,8 @@ class MyWindow(QMainWindow):
             league_to_update = 'lcs'
             target_player_list = self.lcs_player_list
         else:
-            self.text_output_label.setText("Please Select A League From The Dropdown Menu")
+            # self.text_output_label.setText()
+            self.signals.update_output_label.emit("Please Select A League From The Dropdown Menu")
             return 1
 
         sel_week = self.week_selector.currentText()
@@ -273,12 +282,14 @@ class MyWindow(QMainWindow):
         progress = 0
         self.progress_bar.setVisible(True)
         self.progress_bar.setMaximum(len(target_player_list))
-        self.progress_bar.setValue(progress)
+        # self.progress_bar.setValue(progress)
+        self.signals.update_progress_bar.emit(progress)
 
         for player in target_player_list:
             progress += 1
             temp_update_string = return_string + f"Updating Points for {player}..."
-            self.text_output_label.setText(temp_update_string)
+            # self.text_output_label.setText(temp_update_string)
+            self.signals.update_output_label.emit(temp_update_string)
 
             player_to_update = player
 
@@ -307,13 +318,17 @@ class MyWindow(QMainWindow):
             if not temp_return_string.startswith('N'):
                 return_string += temp_return_string
                 return_string += "\n"
-            self.progress_bar.setValue(progress)
-            self.text_output_label.setText(return_string)
+            # self.progress_bar.setValue(progress)
+            self.signals.update_progress_bar.emit(progress)
+            # self.text_output_label.setText(return_string)
+            self.signals.update_output_label.emit(return_string)
 
         if return_string != "":
-            self.text_output_label.setText(return_string)
+            # self.text_output_label.setText(return_string)
+            self.signals.update_output_label.emit(return_string)
         else:
-            self.text_output_label.setText('No Points updated.')
+            # self.text_output_label.setText()
+            self.signals.update_output_label.emit('No Points updated.')
 
         return return_string
 
@@ -321,7 +336,8 @@ class MyWindow(QMainWindow):
         while self.week_selector.currentText().startswith('loading'):
             label_string = 'Week Dropdown-Menu is still loading.\n'
             label_string += 'Please Wait until loading is complete and select a week which you want to update.'
-            self.text_output_label.setText(label_string)
+            # self.text_output_label.setText(label_string)
+            self.signals.update_output_label.emit(label_string)
         return 1
 
     def update_single_player_team_button_clicked_thread(self):
@@ -343,7 +359,8 @@ class MyWindow(QMainWindow):
         elif 'LCS' in league_to_update:
             league_to_update = 'lcs'
         else:
-            self.text_output_label.setText("Please Select A League From The Dropdown Menu")
+            # self.text_output_label.setText()
+            self.signals.update_output_label.emit("Please Select A League From The Dropdown Menu")
             return 1
         sel_week = self.week_selector.currentText()
         week_index = self.weeks.index(sel_week)
@@ -357,13 +374,15 @@ class MyWindow(QMainWindow):
             return 1
 
         temp_update_string = return_string + f"Updating Points for {player_to_update}"
-        self.text_output_label.setText(temp_update_string)
+        # self.text_output_label.setText(temp_update_string)
+        self.signals.update_output_label.emit(temp_update_string)
 
         return_string, players_list = logic.update_single_player_points_for_week(player_to_update, week_date_to_update,
                                                                                  week_index, league_to_update,
                                                                                  [self.lec_players, self.lcs_players],
                                                                                  is_team)
-        self.text_output_label.setText(return_string)
+        # self.text_output_label.setText(return_string)
+        self.signals.update_output_label.emit(return_string)
 
     def player_league_combobox_changed_action_thread(self, index):
         kwargs = {'index': index}
@@ -442,11 +461,13 @@ class MyWindow(QMainWindow):
         if self.pass_phrase_text_field.text().lower() != 'override':
             if (today - week_date) > datetime.timedelta(days=3):
                 return_string = f'Week {week_index + 1} has closed.'
-                self.text_output_label.setText(return_string)
+                # self.text_output_label.setText(return_string)
+                self.signals.update_output_label.emit(return_string)
                 return return_string
         print(week, week_index, self.matchup_dates[week_index])
         response = logic.update_points_for_matchup(spreadsheets, self.matchup_dates[week_index], week, week_index)
-        self.text_output_label.setText(response)
+        # self.text_output_label.setText(response)
+        self.signals.update_output_label.emit(response)
 
     def show_matchup_points_thread(self):
         kwargs = {}
@@ -463,7 +484,8 @@ class MyWindow(QMainWindow):
         print(week, week_index, self.matchup_dates[week_index])
         response = logic.grab_points_for_matchup(spreadsheet, self.matchup_dates[week_index], week)
 
-        self.text_output_label.setText(response)
+        # self.text_output_label.setText(response)
+        self.signals.update_output_label.emit(response)
 
     # Deprecated Don't Use
     def update_table_points_thread(self):
@@ -490,7 +512,8 @@ class MyWindow(QMainWindow):
                                                           self.lec_lcs_team_selector_team_2.currentText(),
                                                           self.player_cb.isChecked(), self.team_cb.isChecked(),
                                                           self.prev_matches)
-        self.text_output_label.setText(response)
+        # self.text_output_label.setText(response)
+        self.signals.update_output_label.emit(response)
 
     def gen_week_for_dropdown_thread(self):
         kwargs = {}
@@ -530,8 +553,8 @@ class MyWindow(QMainWindow):
         else:
             self.user_selector_cb.addItems(['Error'])
             self.user_selector_cb.adjustSize()
-            self.text_output_label.setText("Please Restart App and contact admin if it still doesn't work")
-            self.text_output_label.adjustSize()
+            # self.text_output_label.setText()
+            self.signals.update_output_label.emit("Please Restart App and contact admin if it still doesn't work")
 
     def fill_user_selector_cb_thread(self):
         kwargs = {}
@@ -553,7 +576,8 @@ class MyWindow(QMainWindow):
         return_string = logic.grab_player_and_points_for_user(worksheets, user_string, name_player_coordinates,
                                                               week_index)
 
-        self.text_output_label.setText(return_string)
+        # self.text_output_label.setText(return_string)
+        self.signals.update_output_label.emit(return_string)
 
 
 class ScrollLabel(QScrollArea):
