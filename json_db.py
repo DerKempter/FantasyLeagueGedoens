@@ -70,8 +70,36 @@ def generate_json_str():
           }
         }
       },
-      "Trades":{},
-      "Standings":{}
+      "Trades":{
+        "trade_x": {
+          "from": "peter",
+          "to": "rolf",
+          "player_1": "abudabi",
+          "player_2": "ZionSpartan",
+          "date": "01-01-2022"
+        },
+        "trade_y": {
+          "from": "rolf",
+          "to": "market",
+          "player_1": "jakuzi",
+          "player_2": "WunderWear",
+          "date": "03-01-2022"
+        }
+      },
+      "Standings":{
+        "team_x": {
+          "name": "aaa",
+          "points": 0.0,
+          "wins": 0,
+          "losses": 0
+        },
+        "team_y": {
+          "name": "bbb",
+          "points": 0.0,
+          "wins": 0,
+          "losses": 0
+        }
+      }
     },
     "lec_players": {},
     "lcs_players": {}
