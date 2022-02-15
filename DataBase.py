@@ -55,6 +55,9 @@ class DatabaseHandler:
         fantasy_hub, lec_players, lcs_players = logic.open_spreadsheet()
         self.populate_teams_in_json_db(fantasy_hub)
         self.populate_matchups_in_json_db(fantasy_hub)
+        self.populate_trades_in_json_db(fantasy_hub)
+        self.populate_standings_in_json_db(fantasy_hub)
+
         self.changes_made = True
 
     def populate_teams_in_json_db(self, fantasy_hub):
@@ -72,7 +75,7 @@ class DatabaseHandler:
                          "player_3": team[4], "player_4": team[5], "player_5": team[6], "team_player": team[7],
                          "sub_player": team[8], "reserve_1": team[9], "reserve_2": team[10], "reserve_3": team[11]}
 
-            self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"][f"team_{i}"] = temp_team
+            self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"][f"{i}"] = temp_team
         del self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"]["team_x"]
         del self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"]["team_y"]
 
@@ -87,7 +90,7 @@ class DatabaseHandler:
             matchups_filtered.append(raw_matchups[0:4])
             matchups_filtered.append(raw_matchups[4:8])
             matchups_filtered.append(raw_matchups[8:12])
-            matchups_filtered.append(raw_matchups[12:-1])
+            matchups_filtered.append(raw_matchups[12:])
             # matchups_filtered.append(matchup)
         for matchup in matchups_filtered:
             if len(matchup) == 0:
@@ -105,13 +108,35 @@ class DatabaseHandler:
         del self.json_db_league["fantasy_league"]["fantasy_hub"]["matchups"]["week_x"]
         del self.json_db_league["fantasy_league"]["fantasy_hub"]["matchups"]["week_y"]
 
+        # TODO SAFE TEAMS FOR WEEK IN MATCHUP FOR WEEK
 
     def populate_trades_in_json_db(self, fantasy_hub):
-        return ""
+        trades_raw = fantasy_hub.get(f"L37:O44")
+        for trade in trades_raw:
+            i = trades_raw.index(trade)
+            for j in range(len(trade)):
+                if trade[j] == "Markt":
+                    trade[j] = "market"
+            trade_dict = {"from": trade[0], "to": trade[1], "player_1": trade[2], "player_2": trade[3],
+                          "date": "no_date"}
+            self.json_db_league["fantasy_league"]["fantasy_hub"]["trades"][i] = trade_dict
+        del self.json_db_league["fantasy_league"]["fantasy_hub"]["trades"]["trade_x"]
+        del self.json_db_league["fantasy_league"]["fantasy_hub"]["trades"]["trade_y"]
 
     def populate_standings_in_json_db(self, fantasy_hub):
-        return ""
-
+        standings_raw = fantasy_hub.get(f"V37:Y42")
+        teams = self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"]
+        for standing in standings_raw:
+            name = standing[0]
+            points = standing[1]
+            wins = standing[2]
+            losses = standing[3]
+            for team_index in teams:
+                team = teams[team_index]
+                if team["name"] == name:
+                    self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"][team_index]["points"] = points
+                    self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"][team_index]["wins"] = wins
+                    self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"][team_index]["losses"] = losses
 
     def generate_json_str_league(self):
         json_string_template = """
@@ -131,7 +156,10 @@ class DatabaseHandler:
                   "sub_player": "",
                   "reserv_1": "",
                   "reserv_2": "",
-                  "reserv_3": ""
+                  "reserv_3": "",
+                  "points": "10",
+                  "wins": 1,
+                  "losses": 0
                 },
                 "team_y": {
                   "name": "ralf",
@@ -141,11 +169,14 @@ class DatabaseHandler:
                   "player_3": "",
                   "player_4": "",
                   "player_5": "",
-                  "team_player": "G2",
+                  "team_player": "Vit",
                   "sub_player": "",
                   "reserv_1": "",
                   "reserv_2": "",
-                  "reserv_3": ""
+                  "reserv_3": "",
+                  "points": "10",
+                  "wins": 1,
+                  "losses": 0
                 }
               },
               "matchups": {
@@ -195,20 +226,6 @@ class DatabaseHandler:
                   "player_2": "WunderWear",
                   "date": "03-01-2022"
                 }
-              },
-              "standings": {
-                "team_x": {
-                  "name": "aaa",
-                  "points": 0,
-                  "wins": 0,
-                  "losses": 0
-                },
-                "team_y": {
-                  "name": "bbb",
-                  "points": 0,
-                  "wins": 0,
-                  "losses": 0
-                }
               }
             },
             "agencies": {
@@ -222,7 +239,8 @@ class DatabaseHandler:
                 "player_x": {
                   "name": "abudabi",
                   "agency": "simom"
-                }}
+                }
+              }
             }
           }
         }
