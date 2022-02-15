@@ -3,6 +3,7 @@ import sys
 
 from PyQt5.QtCore import *
 
+import DataBase
 import Logic
 import Logic as logic
 import datetime as dt
@@ -636,6 +637,7 @@ class ScrollLabel(QScrollArea):
 
 
 def bootstrap():
+    db = DataBase.DatabaseHandler()
     app = QApplication(sys.argv)
     win = MyWindow()
 
