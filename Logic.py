@@ -417,7 +417,7 @@ def update_points_for_matchup(spreadsheets: [], match_week_date, sel_week: str, 
 
     spread_string_builder_lec = ['2', '61']
     spread_string_builder_lcs = ['2', '77']
-    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+    spread_string_builder = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
 
     spread_string_index = spread_string_builder[week_index]
     spread_string_lec = f"A{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
