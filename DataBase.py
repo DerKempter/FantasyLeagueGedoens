@@ -1,55 +1,39 @@
 import json
+
+import mariadb
+
 import Logic as logic
 
 
 class DatabaseHandler:
 
     def __init__(self):
-        self.json_db_league = None
-        self.json_db_points = None
+        self.database = None
         self.changes_made = False
 
-        self.json_db_league, self.json_db_points = self.init_db()
+        self.database = self.init_db()
 
     def __del__(self):
         if self.changes_made:
             self.save_db()
 
     def save_db(self):
-        with open("db_league.json", "w") as json_file:
-            json_file.write(json.dumps(self.json_db_league))
-        with open("db_points.json", "w") as json_file:
-            json_file.write(json.dumps(self.json_db_points))
+        return 1
 
-    def init_db(self):
+    def init_db(self, user="dbzy0gjx_a8gcac7", password="fantasyLCS123", host="dbzy0gjx.mariadb.hosting.zone",
+                port="3306", db="dbzy0gjx"):
         try:
-            with open("db_league.json", "r") as file_test:
-                _ = json.load(file_test)
-        except (json.decoder.JSONDecodeError, FileNotFoundError):
-            self.initialize_league_db()
-        try:
-            with open("db_points.json", "r") as file_test:
-                _ = json.load(file_test)
-        except (json.decoder.JSONDecodeError, FileNotFoundError):
-            self.initialize_points_db()
-
-        with open("db_league.json", "r") as json_file:
-            database_league = json.load(json_file)
-
-        with open("db_points.json", "r") as json_file:
-            database_points = json.load(json_file)
-
-        return database_league, database_points
-
-    def initialize_league_db(self):
-        league_json = self.generate_json_str_league()
-        with open("db_league.json", "w+") as league_db:
-            league_db.write(json.dumps(league_json))
-
-    def initialize_points_db(self):
-        league_json = self.generate_json_str_points()
-        with open("db_points.json", "w+") as league_db:
-            league_db.write(json.dumps(league_json))
+            conn = mariadb.connect(
+                user=user,
+                password=password,
+                host=host,
+                port=port,
+                database=db
+            )
+            conn.autocommit = False
+        except mariadb.Error as e:
+            return f"Error connecting to MariaDB Platform: {e}"
+        return conn
 
     def populate_db_from_gsheet(self):
         fantasy_hub, lec_players, lcs_players = logic.open_spreadsheet()
@@ -76,8 +60,6 @@ class DatabaseHandler:
                          "sub_player": team[8], "reserve_1": team[9], "reserve_2": team[10], "reserve_3": team[11]}
 
             self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"][f"{i}"] = temp_team
-        del self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"]["team_x"]
-        del self.json_db_league["fantasy_league"]["fantasy_hub"]["teams"]["team_y"]
 
     def populate_matchups_in_json_db(self, fantasy_hub):
         matchups_raw_0 = fantasy_hub.get(f"L18:O33")
@@ -104,10 +86,7 @@ class DatabaseHandler:
                 match_dict = {"player_1": match[0], "points_1": match[1], "player_2": match[3], "points_2": match[2]}
                 week_dict[f"matchup_{index}"] = match_dict
             print(matchup)
-            self.json_db_league["fantasy_league"]["fantasy_hub"]["matchups"][f"week_{week}"] = week_dict
-        del self.json_db_league["fantasy_league"]["fantasy_hub"]["matchups"]["week_x"]
-        del self.json_db_league["fantasy_league"]["fantasy_hub"]["matchups"]["week_y"]
-
+            # self.json_db_league["fantasy_league"]["fantasy_hub"]["matchups"][f"week_{week}"] = week_dict
         # TODO SAFE TEAMS FOR WEEK IN MATCHUP FOR WEEK
 
     def populate_trades_in_json_db(self, fantasy_hub):
@@ -119,9 +98,7 @@ class DatabaseHandler:
                     trade[j] = "market"
             trade_dict = {"from": trade[0], "to": trade[1], "player_1": trade[2], "player_2": trade[3],
                           "date": "no_date"}
-            self.json_db_league["fantasy_league"]["fantasy_hub"]["trades"][i] = trade_dict
-        del self.json_db_league["fantasy_league"]["fantasy_hub"]["trades"]["trade_x"]
-        del self.json_db_league["fantasy_league"]["fantasy_hub"]["trades"]["trade_y"]
+            # self.json_db_league["fantasy_league"]["fantasy_hub"]["trades"][i] = trade_dict
 
     def populate_standings_in_json_db(self, fantasy_hub):
         standings_raw = fantasy_hub.get(f"V37:Y42")
@@ -313,6 +290,7 @@ class DatabaseHandler:
         """
         json_string = json.loads(json_string_template)
         return json_string
+
 
 database = DatabaseHandler()
 database.populate_db_from_gsheet()

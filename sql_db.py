@@ -1,4 +1,4 @@
-import mysql.connector
+import mariadb
 import Logic
 
 
@@ -77,7 +77,10 @@ def convert_team_to_id(team_to_convert: str, db) -> int:
     return res[0][0]
 
 
-mydb = mysql.connector.connect(host="localhost", user="root", database="fantasy_lcs")
+
+
+
+mydb = connect_to_database()
 
 cursor = mydb.cursor()
 

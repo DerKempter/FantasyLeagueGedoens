@@ -3,7 +3,7 @@ import sys
 
 from PyQt5.QtCore import *
 
-import DataBase
+import mariadb
 import Logic
 import Logic as logic
 import datetime as dt
@@ -25,7 +25,12 @@ class MyWindow(QMainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
 
-        self.db = DataBase.DatabaseHandler()
+
+
+        # Get Cursor
+        cur = conn.cursor()
+
+        # self.db = DataBase.DatabaseHandler()
 
         self.threadpool = QThreadPool()
         print(f"Multithreading with maximum {self.threadpool.maxThreadCount()} threads")
@@ -76,8 +81,6 @@ class MyWindow(QMainWindow):
         # self.update_table_points_button = None
         # self.tournament_cb = None
 
-    def __del__(self):
-        del self.db
 
     def handle_return_string_signal(self, rtr_str: str):
         self.current_rtr_str = rtr_str
