@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['GUI.py'],
-             pathex=[],
+             pathex=['./venv/Lib/site-packages'],
              binaries=[],
              datas=[('./service_account.json', '.')],
              hiddenimports=[],

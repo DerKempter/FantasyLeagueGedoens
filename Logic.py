@@ -7,6 +7,7 @@ from gspread import worksheet
 SPREADSHEET_NAME = "High Society Kranichfeld"
 WEEKS = [("L", "18"), ("L", "22"), ("L", "26"), ("L", "30"), ("P", "18"),
          ("P", "22"), ("P", "26"), ("P", "30"), ("T", "18"), ("T", "22")]
+SPREAD_STRING_BUILDER = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
 
 
 def inc_letter(letter: chr, increment_int) -> chr:
@@ -217,9 +218,8 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
 
     spread_string_builder_lec = ['65', '124']
     spread_string_builder_lcs = ['81', '156']
-    spread_string_builder = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
 
-    spread_string_index = spread_string_builder[week_index]
+    spread_string_index = SPREAD_STRING_BUILDER[week_index]
     spread_string_lec = f"D{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
     spread_string_lcs = f"D{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}"
 
@@ -359,9 +359,9 @@ def update_spreadsheet_player_points(scores_to_update: [], league: str, week_ind
     lec_players, lcs_players = open_spreadsheet(to_use=['lec_players', 'lcs_players'])
     spread_string_builder_lec = ['65', '124']
     spread_string_builder_lcs = ['81', '156']
-    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
+
     if league == "LEC 2022 Spring":
-        spread_string_index = spread_string_builder[week_index]
+        spread_string_index = SPREAD_STRING_BUILDER[week_index]
         spread_string = f'D{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}'
         lec_players_list = lec_players.get(spread_string)
         for score, player_string in scores_to_update:
@@ -382,7 +382,7 @@ def update_spreadsheet_player_points(scores_to_update: [], league: str, week_ind
 
         lec_players.update(spread_string, lec_players_list)
     elif league == "LCS 2022 Lock In" or league == "LCS 2022 Spring":
-        spread_string_index = spread_string_builder[week_index]
+        spread_string_index = SPREAD_STRING_BUILDER[week_index]
         spread_string = f'D{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}'
         lcs_players_list = lcs_players.get(spread_string)
         for score, player_string in scores_to_update:
@@ -417,9 +417,8 @@ def update_points_for_matchup(spreadsheets: [], match_week_date, sel_week: str, 
 
     spread_string_builder_lec = ['2', '61']
     spread_string_builder_lcs = ['2', '77']
-    spread_string_builder = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
 
-    spread_string_index = spread_string_builder[week_index]
+    spread_string_index = SPREAD_STRING_BUILDER[week_index]
     spread_string_lec = f"A{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
     spread_string_lcs = f"A{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}"
 
@@ -655,7 +654,6 @@ def update_player_agency(ws: []):
 
     spread_string_builder_lec = ['2', '61']
     spread_string_builder_lcs = ['2', '77']
-    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
 
     spread_string_lec = f"A{spread_string_builder_lec[0]}:D{spread_string_builder_lec[1]}"
     spread_string_lcs = f"A{spread_string_builder_lcs[0]}:D{spread_string_builder_lcs[1]}"
@@ -707,9 +705,8 @@ def grab_player_and_points_for_user(ws: [], user, coordinates: str, week_index: 
 
     spread_string_builder_lec = ['2', '61']
     spread_string_builder_lcs = ['2', '77']
-    spread_string_builder = ['F', 'G', 'H', 'I', 'J']
 
-    spread_string_index = spread_string_builder[week_index]
+    spread_string_index = SPREAD_STRING_BUILDER[week_index]
     spread_string_lec = f"A{spread_string_builder_lec[0]}:{spread_string_index}{spread_string_builder_lec[1]}"
     spread_string_lcs = f"A{spread_string_builder_lcs[0]}:{spread_string_index}{spread_string_builder_lcs[1]}"
 
