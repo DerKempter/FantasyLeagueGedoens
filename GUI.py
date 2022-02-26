@@ -4,6 +4,8 @@ import sys
 from PyQt5.QtCore import *
 
 import mariadb
+
+import DataBase
 import Logic
 import Logic as logic
 import datetime as dt
@@ -25,10 +27,10 @@ class MyWindow(QMainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
 
-
+        self.databaseHandler = DataBase.DatabaseHandler()
 
         # Get Cursor
-        cur = conn.cursor()
+        cur = self.databaseHandler.database.cursor()
 
         # self.db = DataBase.DatabaseHandler()
 
