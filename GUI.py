@@ -1,9 +1,8 @@
+import configparser
 import datetime
 import sys
 
 from PyQt5.QtCore import *
-
-import mariadb
 
 import DataBase
 import Logic
@@ -11,7 +10,7 @@ import Logic as logic
 import datetime as dt
 
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow, QScrollArea, QWidget, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QMainWindow, QScrollArea, QWidget, QVBoxLayout, QLabel
 
 __VERSION__ = '0.5.3-beta'
 
@@ -22,22 +21,24 @@ class MyWindow(QMainWindow):
     lec_teams = ['Astralis', 'Excel Esports', 'Fnatic', 'G2 Esports', 'MAD Lions', 'Misfits Gaming',
                  'Rogue (European Team)', 'SK Gaming', 'Team BDS', 'Team Vitality']
     lcs_teams = ['100 Thieves', 'Counter Logic Gaming', 'Cloud9', 'Dignitas', 'Evil Geniuses.NA', 'FlyQuest',
-                 'Golden Guardians', 'Immortals', 'Team Liquid', 'TSM']
+                 'Golden Guardians', 'Immortals', 'Team Liquid', 'Team Solo Mid']
 
-    def __init__(self):
+    def __init__(self, config_is_present):
         super(MyWindow, self).__init__()
 
-        self.databaseHandler = DataBase.DatabaseHandler()
+        self.signals = Threading.WorkerSignals()
 
-        # Get Cursor
-        cur = self.databaseHandler.database.cursor()
+        self.config = None
+        self.config_is_present = config_is_present
 
-        # self.db = DataBase.DatabaseHandler()
+        self.databaseHandler = None
 
         self.threadpool = QThreadPool()
+        self.threadpool.setMaxThreadCount(1)
         print(f"Multithreading with maximum {self.threadpool.maxThreadCount()} threads")
 
-        self.signals = Threading.WorkerSignals()
+        self.check_for_config(self.config_is_present)
+
         self.signals.return_string.connect(self.handle_return_string_signal)
         self.signals.get_worksheets.connect(self.handle_get_worksheets_signal)
         self.signals.get_dates_lists.connect(self.handle_get_dates_lists_signal)
@@ -72,17 +73,53 @@ class MyWindow(QMainWindow):
         self.fantasy_hub, self.lec_players, self.lcs_players, self.prev_matches = None, None, None, None
         self.init_ui()
 
-        # All out commented are deprecated for now
-        # self.lec_lcs_team_selector_team_2 = None
-        # self.lec_lcs_team_selector_team_1 = None
-        # self.lec_lcs_cb = None
-        # self.player_cb = None
-        # self.day_label = None
-        # self.day_selector = None
-        # self.team_cb = None
-        # self.update_table_points_button = None
-        # self.tournament_cb = None
+    def check_for_config(self, config_is_present):
+        if not config_is_present:
+            self.generate_config()
+        else:
+            self.load_config()
+            self.init_db()
 
+    def init_db(self):
+        db_config = self.config['DB-Login']
+        user = db_config['Username']
+        pw = db_config['Password']
+        host = db_config['Host']
+        port = int(db_config['Port'])
+        db = db_config['Database']
+        self.databaseHandler = DataBase.DatabaseHandler(user, pw, host, port, db)
+
+    def load_config(self):
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        self.config = config
+
+    def generate_config(self):
+        self.signals.popup_closed.connect(self.handle_popup_closed)
+        self.dialog = Popup(self.signals)
+        self.dialog.setGeometry(QRect(100, 100, 400, 200))
+        self.dialog.show()
+
+    def handle_popup_closed(self, value: bool):
+        if value is False:
+            return None
+        config = configparser.ConfigParser()
+        config['DB-Login'] = {'Username': 'none',
+                              'Host': 'dbzy0gjx.mariadb.hosting.zone',
+                              'port': 3306,
+                              'Database': 'dbzy0gjx',
+                              'Password': 'none'}
+
+        username = self.dialog.usernameText
+        passwd = self.dialog.passwdText
+
+        config['DB-Login']['Username'] = username
+        config['DB-Login']['Password'] = passwd
+        with open('config.ini', 'w+') as configfile:
+            config.write(configfile)
+        self.config = config
+
+        self.threadpool.start(self.init_db)
 
     def handle_return_string_signal(self, rtr_str: str):
         self.current_rtr_str = rtr_str
@@ -190,59 +227,6 @@ class MyWindow(QMainWindow):
         self.display_current_standings_btn.adjustSize()
         self.display_current_standings_btn.move(50, 350)
         self.display_current_standings_btn.clicked.connect(self.display_current_standings_btn_clicked_thread)
-
-        # Deprecated
-        # self.day_label = QtWidgets.QLabel(self)
-        # self.day_label.setText("Select Weekday for updating")
-        # self.day_label.adjustSize()
-        # self.day_label.move(50, 85)
-        # self.day_label.setVisible(False)
-
-        # self.day_selector = QtWidgets.QComboBox(self)
-        # self.day_selector.addItems(['1', '2', '3', '4'])
-        # self.day_selector.adjustSize()
-        # self.day_selector.move(50, 100)
-        # self.day_selector.setVisible(False)
-
-        # self.update_table_points_button = QtWidgets.QPushButton(self)
-        # self.update_table_points_button.setText("Update Player-Tables")
-        # self.update_table_points_button.adjustSize()
-        # self.update_table_points_button.clicked.connect(self.update_table_points_thread)
-        # self.update_table_points_button.move(50, 225)
-        # self.update_table_points_button.setVisible(False)
-
-        # self.lec_lcs_cb = QtWidgets.QComboBox(self)
-        # self.lec_lcs_cb.addItems(["don't use specific Teams", 'use LEC-Teams', 'use LCS-Teams'])
-        # self.lec_lcs_cb.adjustSize()
-        # self.lec_lcs_cb.currentIndexChanged.connect(self.lec_lcs_combobox_changed_action_thread)
-        # self.lec_lcs_cb.move(50, 125)
-        # self.lec_lcs_cb.setVisible(False)
-
-        # self.team_cb = QtWidgets.QCheckBox(self)
-        # self.team_cb.setText("update Teams")
-        # self.team_cb.adjustSize()
-        # self.team_cb.move(50, 185)
-        # self.team_cb.setVisible(False)
-
-        # self.player_cb = QtWidgets.QCheckBox(self)
-        # self.player_cb.setText("update Players")
-        # self.player_cb.adjustSize()
-        # self.player_cb.move(150, 185)
-        # self.player_cb.setVisible(False)
-
-        # self.tournament_cb = QtWidgets.QComboBox(self)
-        # self.tournament_cb.addItems(['LEC 2022 Spring', 'LCS 2022 Spring', 'LCS 2022 Lock In'])
-        # self.tournament_cb.adjustSize()
-        # self.tournament_cb.move(50, 205)
-        # self.tournament_cb.setVisible(False)
-
-        # self.lec_lcs_team_selector_team_1 = QtWidgets.QComboBox(self)
-        # self.lec_lcs_team_selector_team_1.move(50, 150)
-        # self.lec_lcs_team_selector_team_1.setVisible(False)
-
-        # self.lec_lcs_team_selector_team_2 = QtWidgets.QComboBox(self)
-        # self.lec_lcs_team_selector_team_2.move(150, 150)
-        # self.lec_lcs_team_selector_team_2.setVisible(False)
 
     def update_player_agency_btn_clicked_thread(self):
         kwargs = {}
@@ -611,6 +595,48 @@ class MyWindow(QMainWindow):
         return return_string
 
 
+class Popup(QWidget):
+    def __init__(self, signals):
+        super().__init__()
+
+        self.signals = signals
+
+        self.passwdText = None
+        self.usernameText = None
+
+        self.username = QtWidgets.QLineEdit(self)
+        self.username.setPlaceholderText('Database Username')
+        self.username.adjustSize()
+        self.username.move(50, 50)
+
+        self.passwd = QtWidgets.QLineEdit(self)
+        self.passwd.setPlaceholderText('Database password')
+        self.passwd.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+        self.passwd.adjustSize()
+        self.passwd.move(200, 50)
+
+        self.ok_btn = QtWidgets.QPushButton(self)
+        self.ok_btn.setText('OK')
+        self.ok_btn.move(50, 150)
+        self.ok_btn.clicked.connect(self.grab_input_text)
+
+        self.abort_btn = QtWidgets.QPushButton(self)
+        self.abort_btn.setText('Close Application')
+        self.abort_btn.move(200, 150)
+        self.abort_btn.clicked.connect(self.abort_btn_clicked)
+
+    def closeEvent(self, event) -> None:
+        self.signals.popup_closed.emit(True)
+
+    def grab_input_text(self):
+        self.usernameText = self.username.text()
+        self.passwdText = self.passwd.text()
+        self.close()
+
+    def abort_btn_clicked(self):
+        sys.exit(1)
+
+
 class ScrollLabel(QScrollArea):
 
     # constructor
@@ -644,15 +670,3 @@ class ScrollLabel(QScrollArea):
     def setText(self, text):
         # setting text to the label
         self.label.setText(text)
-
-
-def bootstrap():
-    app = QApplication(sys.argv)
-    win = MyWindow()
-
-    win.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    bootstrap()

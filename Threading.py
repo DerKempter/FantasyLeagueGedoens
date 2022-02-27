@@ -23,3 +23,4 @@ class WorkerSignals(QObject):
     get_dates_lists = pyqtSignal(list, list)
     update_output_label = pyqtSignal(str)
     update_progress_bar = pyqtSignal(int)
+    popup_closed = pyqtSignal(bool)
