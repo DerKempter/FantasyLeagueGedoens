@@ -7,97 +7,94 @@ class DbObject:
 
 
 class League(DbObject):
-    def __init__(self, name):
+    def __init__(self):
         super().__init__()
-        self.name = name
+        self.name = None
 
 
 class Matchup(DbObject):
-    def __init__(self, start_date, week_id, user_id_1, user_id_2):
+    def __init__(self):
         super().__init__()
-        self.startDate = start_date
-        self.weekId = week_id
-        self.userId_1 = user_id_1
-        self.userId_2 = user_id_2
+        self.startDate = None
+        self.weekId = None
+        self.userId_1 = None
+        self.userId_2 = None
 
 
 class PlayerPoints(DbObject):
-    def __init__(self, player_id, week_id, cs, kills, deaths, assists, doubles, triples, quadras, pentas, fb, ft,
-                 towers, drakes, heralds, barons, wins, qwins, souls, drake_steals, soul_steals, herald_steals,
-                 baron_steals):
+    def __init__(self):
         super().__init__()
-        self.playerId = player_id
-        self.week = week_id
-        self.cs = cs
-        self.kills = kills
-        self.deaths = deaths
-        self.assists = assists
-        self.doubleKills = doubles
-        self.tripleKills = triples
-        self.quadraKills = quadras
-        self.pentaKills = pentas
-        self.firstBloods = fb
-        self.firstTowers = ft
-        self.towers = towers
-        self.drakes = drakes
-        self.heralds = heralds
-        self.barons = barons
-        self.wins = wins
-        self.quickWins = qwins
-        self.souls = souls
-        self.drakeSteals = drake_steals
-        self.soulSteals = soul_steals
-        self.heraldSteals = herald_steals
-        self.baronSteals = baron_steals
+        self.playerId = None
+        self.week = None
+        self.cs = None
+        self.kills = None
+        self.deaths = None
+        self.assists = None
+        self.doubleKills = None
+        self.tripleKills = None
+        self.quadraKills = None
+        self.pentaKills = None
+        self.firstBloods = None
+        self.firstTowers = None
+        self.towers = None
+        self.drakes = None
+        self.heralds = None
+        self.barons = None
+        self.wins = None
+        self.quickWins = None
+        self.souls = None
+        self.drakeSteals = None
+        self.soulSteals = None
+        self.heraldSteals = None
+        self.baronSteals = None
 
 
 class Player(DbObject):
-    def __init__(self, name, user_id, league_team_id, position, league_id):
+    def __init__(self):
         super().__init__()
-        self.name = name
-        self.userId = user_id
-        self.leagueTeamId = league_team_id
-        self.position = position
-        self.leagueId = league_id
+        self.name = None
+        self.userId = None
+        self.leagueTeamId = None
+        self.position = None
+        self.laegueId = None
 
 
 class PlayerTeam(DbObject):
-    def __init__(self, name):
+    def __init__(self):
         super().__init__()
-        self.name = name
+        self.name = None
 
 
 class Trade(DbObject):
-    def __init__(self, user_id_1, user_id_2, player_id_1, player_id_2, trade_time):
+    def __init__(self):
         super().__init__()
-        self.userId_1 = user_id_1
-        self.userId_2 = user_id_2
-        self.playerId_1 = player_id_1
-        self.playerId_2 = player_id_2
-        self.tradeTime = trade_time
+        self.userId_1 = None
+        self.userId_2 = None
+        self.playerId_1 = None
+        self.playerId_2 = None
+        self.tradeTime = None
 
 
 class User(DbObject):
-    def __init__(self, name):
+    def __init__(self):
         super().__init__()
-        self.name = name
+        self.name = None
 
 
 class UserTeam(DbObject):
-    def __init__(self, user_id, player_id_1, player_id_2, player_id_3, player_id_4, player_id_5, player_id_6,
-                 player_id_7, player_id_8, player_id_9, player_id_10):
+    def __init__(self):
         super().__init__()
-        self.userId = user_id
-        self.playerId_1 = player_id_1
-        self.playerId_2 = player_id_2
-        self.playerId_3 = player_id_3
-        self.playerId_4 = player_id_4
-        self.playerId_5 = player_id_5
-        self.playerIdTeam = player_id_6
-        self.playerIdSub = player_id_7
-        self.playerIdReserve_1 = player_id_8
-        self.playerIdReserve_2 = player_id_9
-        self.playerIdReserve_3 = player_id_10
+        self.userId = None
+        self.playerId_1 = None
+        self.playerId_2 = None
+        self.playerId_3 = None
+        self.playerId_4 = None
+        self.playerId_5 = None
+        self.playerIdTeam = None
+        self.playerIdSub = None
+        self.playerIdReserve_1 = None
+        self.playerIdReserve_2 = None
+        self.playerIdReserve_3 = None
 
 
 class Week(DbObject):
