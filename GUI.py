@@ -104,11 +104,11 @@ class MyWindow(QMainWindow):
         if value is False:
             return None
         config = configparser.ConfigParser()
-        config['DB-Login'] = {'Username': 'none',
+        config['DB-Login'] = {'Username': '',
                               'Host': 'dbzy0gjx.mariadb.hosting.zone',
                               'port': 3306,
                               'Database': 'dbzy0gjx',
-                              'Password': 'none'}
+                              'Password': ''}
 
         username = self.dialog.usernameText
         passwd = self.dialog.passwdText
