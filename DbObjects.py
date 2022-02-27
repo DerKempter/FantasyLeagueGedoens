@@ -9,7 +9,7 @@ class DbObject:
 class League(DbObject):
     def __init__(self, name):
         super().__init__()
-        self.name = None
+        self.name = name
 
 
 class Matchup(DbObject):
