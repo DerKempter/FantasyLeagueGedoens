@@ -3,6 +3,7 @@ import json
 import mariadb
 
 # import Logic as logic
+import DbConverter
 import DbObjects
 
 
@@ -11,6 +12,7 @@ class DatabaseHandler:
     def __init__(self, user, pw, host, port, db):
         self.database = None
         self.changes_made = False
+        self.db_converter = DbConverter.DatabaseConverter()
 
         self.database = self.init_db(user, pw, host, port, db)
 
@@ -131,7 +133,7 @@ class DatabaseHandler:
         elif len(res) > 1:
             return "more than one entry found!"
         else:
-            return res
+            return self.db_converter.db_to_obj(res[0], DbObjects.PlayerPoints)
 
     def other_stuff(self, sql="", val=""):
         # sql = "INSERT INTO `playerteams` (teamName) VALUES(%s)"
