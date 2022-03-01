@@ -98,7 +98,7 @@ class DatabaseHandler:
         return res[0][0]
 
     def grab_player_id_from_name_str(self, name_list: []) -> []:
-        sql_str_base = "SELECT playerId, name FROM `players` WHERE `players`.`name` REGEXP '%s'"
+        sql_str_base = "SELECT * FROM `players` WHERE `players`.`name` REGEXP '%s'"
         player_str_base = ""
         res = []
 
@@ -110,8 +110,8 @@ class DatabaseHandler:
         cursor = self.database.cursor()
         cursor.execute(sql_statement)
 
-        for player_id, name in cursor:
-            res.append((player_id, name))
+        for result in cursor:
+            res.append(self.db_converter.db_to_obj(result, DbObjects.Player))
 
         return res
 
