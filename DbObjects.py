@@ -5,6 +5,12 @@ class DbObject:
     def __init__(self, self_id=None):
         self.id = self_id
 
+    def __iter__(self):
+        param_dict = self.__dict__
+        param_keys = list(param_dict.keys())
+        return DbObjectIterator(param_dict, param_keys)
+
+
 
 class League(DbObject):
     def __init__(self, self_id=None, name=None):
@@ -106,3 +112,18 @@ class Week(DbObject):
         super().__init__(self_id)
         self.startDate = start_date
         self.endDate = end_date
+
+
+class DbObjectIterator:
+    def __init__(self, param_dict: dict, param_keys: []):
+        self.param_dict = param_dict
+        self.dict_keys = param_keys
+        self.index = 0
+
+    def __next__(self):
+        if self.index >= len(self.dict_keys):
+            raise StopIteration
+        key = self.dict_keys[self.index]
+        res = self.param_dict.get(key)
+        self.index += 1
+        return key, res
