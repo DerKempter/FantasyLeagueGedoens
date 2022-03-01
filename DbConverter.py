@@ -110,21 +110,18 @@ class DatabaseConverter:
         return tar_list
 
     def db_to_obj(self, params: [], target_obj) -> DbObject:
-        tar_obj = target_obj()
+        tar_obj = target_obj(params[0])
 
         if type(tar_obj) is League:
-            tar_obj.id = params[0]
             tar_obj.name = params[1]
 
         elif type(tar_obj) is Matchup:
-            tar_obj.id = params[0]
             tar_obj.startDate = params[1]
             tar_obj.weekId = params[2]
             tar_obj.userId_1 = params[3]
             tar_obj.userId_2 = params[4]
 
         elif type(tar_obj) is PlayerPoints:
-            tar_obj.id = params[0]
             tar_obj.playerId = params[1]
             tar_obj.week = params[2]
             tar_obj.cs = params[3]
@@ -150,7 +147,6 @@ class DatabaseConverter:
             tar_obj.baronSteals = params[23]
 
         elif type(tar_obj) is Player:
-            tar_obj.id = params[0]
             tar_obj.name = params[1]
             tar_obj.userId = params[2]
             tar_obj.leagueTeamId = params[3]
@@ -158,11 +154,9 @@ class DatabaseConverter:
             tar_obj.leagueId = params[5]
 
         elif type(tar_obj) is PlayerTeam:
-            tar_obj.id = params[0]
             tar_obj.name = params[1]
 
         elif type(tar_obj) is Trade:
-            tar_obj.id = params[0]
             tar_obj.userId_1 = params[1]
             tar_obj.userId_2 = params[2]
             tar_obj.playerId_1 = params[3]
@@ -170,11 +164,9 @@ class DatabaseConverter:
             tar_obj.tradeTime = params[5]
 
         elif type(tar_obj) is User:
-            tar_obj.id = params[0]
             tar_obj.name = params[1]
 
         elif type(tar_obj) is UserTeam:
-            tar_obj.id = params[0]
             tar_obj.userId = params[1]
             tar_obj.playerId_1 = params[2]
             tar_obj.playerId_2 = params[3]
@@ -188,7 +180,6 @@ class DatabaseConverter:
             tar_obj.playerIdReserve_3 = params[11]
 
         elif type(tar_obj) is Week:
-            tar_obj.id = params[0]
             tar_obj.startDate = params[1]
             tar_obj.endDate = params[2]
 
