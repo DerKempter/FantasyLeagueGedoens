@@ -1,21 +1,10 @@
 from DbObjects import DbObject, League, Matchup, PlayerPoints, Player, PlayerTeam, Trade, User, UserTeam, Week
-import DataBase
+
 
 class DatabaseConverter:
     def __init__(self):
         self.last_obj_to_db = None
         self.last_db_to_obj = None
-        self.obj_target_list = [
-            League,
-            Matchup,
-            PlayerPoints,
-            Player,
-            PlayerTeam,
-            Trade,
-            User,
-            UserTeam,
-            Week
-        ]
 
     def obj_to_db(self, obj: DbObject) -> []:
         if type(obj) is League:
@@ -120,8 +109,8 @@ class DatabaseConverter:
 
         return tar_list
 
-    def db_to_obj(self, params: [], target_obj: int) -> DbObject:
-        tar_obj = self.obj_target_list[target_obj]()
+    def db_to_obj(self, params: [], target_obj) -> DbObject:
+        tar_obj = target_obj()
 
         if type(tar_obj) is League:
             tar_obj.id = params[0]
@@ -206,4 +195,3 @@ class DatabaseConverter:
         self.last_db_to_obj = tar_obj
 
         return tar_obj
-
