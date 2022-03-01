@@ -6,6 +6,6 @@ dist
 
 
 service_account.json
-test.py
+config.ini
 
 GUI.spec
