@@ -344,11 +344,18 @@ def update_spreadsheet_player_points(scores_to_update: [], league: str, week_id:
 
     id_name_list = db_handler.grab_player_id_from_name_str([name for name, _ in scores_to_update])
     to_update_list = [(player_id, name, points) for player_id, name, _, points in (id_name_list, scores_to_update)]
+    final_to_update_list = []
 
     for player_id, name, points in to_update_list:
         points: DbObjects.PlayerPoints = points
-        points.id = player_id
-
+        points.playerId = player_id
+        res = db_handler.check_if_player_points_is_in_week(points)
+        if res and type(res) is not str:
+            final_to_update_list.append((res, 1))
+        else:
+            final_to_update_list.append((points, 0))
+    if len(final_to_update_list) == 0:
+        return "Nothing to update"
 
     return 1
 
