@@ -26,7 +26,7 @@ class DatabaseHandler:
     def init_db(self, user, password, host,
                 port, db):
         try:
-            conn = mariadb.connect(
+            conn: mariadb.connection = mariadb.connect(
                 user=user,
                 password=password,
                 host=host,
@@ -134,6 +134,26 @@ class DatabaseHandler:
             return "more than one entry found!"
         else:
             return self.db_converter.db_to_obj(res[0], DbObjects.PlayerPoints)
+
+    def update_insert_playerpoints_in_db(self, list_of_obj: [], update: bool):
+        update_sql = "UPDATE `playerpoints` SET %1 WHERE `playerpoints`.`week` = %2 AND `playerpoints`.`playerId` = %3"
+        insert_sql = "INSERT INTO `playerpoints` (%1) VALUES (%2)"
+        obj: DbObjects.PlayerPoints
+        for obj in list_of_obj:
+            if update:
+                sql = update_sql
+                attribute_str = ""
+                attributes_list = [(name, val) for name, val in obj]
+                for name, val in attributes_list:
+                    attribute_str += f"{name} = {val},"
+                week = obj.week
+                player_id = obj.playerId
+                sql.replace('%2', week).replace('%3', player_id).replace('%1', attribute_str[:-1])
+
+                cursor = self.database.cursor()
+                cursor.execute(sql)
+            else:
+                sql = insert_sql
 
     def other_stuff(self, sql="", val=""):
         # sql = "INSERT INTO `playerteams` (teamName) VALUES(%s)"
