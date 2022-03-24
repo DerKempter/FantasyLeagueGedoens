@@ -7,7 +7,7 @@ from gspread import worksheet
 SPREADSHEET_NAME = "High Society Kranichfeld"
 WEEKS = [("L", "18"), ("L", "22"), ("L", "26"), ("L", "30"), ("P", "18"),
          ("P", "22"), ("P", "26"), ("P", "30"), ("T", "18"), ("T", "22")]
-SPREAD_STRING_BUILDER = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
+SPREAD_STRING_BUILDER = ['F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S']
 
 
 def inc_letter(letter: chr, increment_int) -> chr:
@@ -58,7 +58,7 @@ def get_game_stats_and_update_spread(date_string: str, week_index: int, tourname
                                               "SG.Patch, SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, "
                                               "SG.Team2Barons, SG.Team1Towers, SG.Team2Towers, SG.RiotPlatformGameId, "
                                               "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, "
-                                              "SP.KeystoneRune, SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, "
+                                              "SP.KeystoneRune, SP.Role, SP.Side, SP.Assists, SP.Kills, "
                                               "SP.Deaths, SP.CS",
                                        where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
                                              f"'{str(date + dt.timedelta(1))}') AND (SG.Tournament = '{tournament}')"
@@ -86,7 +86,7 @@ def get_game_stats_and_update_spread(date_string: str, week_index: int, tourname
                                        join_on="SG.GameId=SP.GameId",
                                        fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, "
                                               "SG.Patch, SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, "
-                                              "SP.KeystoneMastery, SP.KeystoneRune, SP.Role, SP.UniqueGame, "
+                                              "SP.KeystoneMastery, SP.KeystoneRune, SP.Role, "
                                               "SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
                                        where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
                                              f"'{str(date + dt.timedelta(hours=24))}') AND (SG.Tournament = '{tournament}') "
@@ -101,8 +101,7 @@ def get_game_stats_and_update_spread(date_string: str, week_index: int, tourname
                                      tables="ScoreboardGames=SG",
                                      fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
                                             "SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, SG.Team2Barons, "
-                                            "SG.Team1Towers, SG.Team2Towers, SG.Team1RiftHeralds, SG.Team2RiftHeralds, "
-                                            "SG.RiotPlatformGameId, SG.RiotGameId",
+                                            "SG.Team1Towers, SG.Team2Towers, SG.Team1RiftHeralds, SG.Team2RiftHeralds",
                                      where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
                                            f"'{str(date + dt.timedelta(hours=24))}') AND (SG.Tournament = "
                                            f"'{tournament}') "
@@ -188,7 +187,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
                                    "SG.Patch, SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, "
                                    "SG.Team2Barons, SG.Team1Towers, SG.Team2Towers, SG.RiotPlatformGameId, "
                                    "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, "
-                                   "SP.KeystoneRune, SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, "
+                                   "SP.KeystoneRune, SP.Role, SP.Side, SP.Assists, SP.Kills, "
                                    "SP.Deaths, SP.CS",
                             where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
                                   f"'{str(date + dt.timedelta(hours=24*5))}') AND (SG.Tournament = 'LCS 2022 Spring' OR"
@@ -512,7 +511,7 @@ def get_points_from_match_week_players(date_string):
                         join_on="SG.GameId=SP.GameId",
                         fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
                                "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, SP.KeystoneRune, "
-                               "SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
+                               "SP.Role, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
                         where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
                               f"'{str(date + dt.timedelta(hours=(24 * 5)))}') AND (SG.Tournament = 'LCS 2022 Spring' OR"
                               f" SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In')"
@@ -795,7 +794,7 @@ def get_game_stats(date_string: str, tournament: str):
     #                     join_on="SG.GameId=SP.GameId",
     #                     fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, SG.Patch, "
     #                            "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, SP.KeystoneRune, "
-    #                            "SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
+    #                            "SP.Role, SP.Side, SP.Assists, SP.Kills, SP.Deaths, SP.CS",
     #                     where=f"SG.DateTime_UTC >= '{str(date)} 00:00:00' AND SG.DateTime_UTC <= "
     #                           f"'{str(date + dt.timedelta(hours=(24*5)))} 00:00:00' AND SG.Tournament = 'LCS 2022 Spring' OR "
     #                           f"SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In'"
@@ -809,7 +808,7 @@ def get_game_stats(date_string: str, tournament: str):
                                "SG.Patch, SG.Team1Dragons, SG.Team2Dragons, SG.Team1Barons, "
                                "SG.Team2Barons, SG.Team1Towers, SG.Team2Towers, SG.RiotPlatformGameId, "
                                "SP.Link, SP.Team, SP.Champion, SP.SummonerSpells, SP.KeystoneMastery, "
-                               "SP.KeystoneRune, SP.Role, SP.UniqueGame, SP.Side, SP.Assists, SP.Kills, "
+                               "SP.KeystoneRune, SP.Role, SP.Side, SP.Assists, SP.Kills, "
                                "SP.Deaths, SP.CS",
                         where=f"SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
                               f"'{str(date + dt.timedelta(1))}' AND SG.Tournament = '{tournament}' "

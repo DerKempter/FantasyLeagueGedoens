@@ -531,7 +531,8 @@ class MyWindow(QMainWindow):
         if not self.fantasy_hub:
             self.fantasy_hub = logic.open_spreadsheet(only_use_hub=True)
         weeks_coord = [("L", "18"), ("L", "22"), ("L", "26"), ("L", "30"), ("P", "18"),
-                       ("P", "22"), ("P", "26"), ("P", "30"), ("T", "18"), ("T", "22")]
+                       ("P", "22"), ("P", "26"), ("P", "30"), ("T", "26"), ("T", "30"),
+                       ("T", "18"), ("T", "22")]
         weeks = []
         week_dates = []
         for letter, number in weeks_coord:
