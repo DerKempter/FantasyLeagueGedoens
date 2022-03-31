@@ -191,8 +191,9 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
                                    "SP.Deaths, SP.CS",
                             where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
                                   f"'{str(date + dt.timedelta(hours=24*5))}') AND (SG.Tournament = 'LCS 2022 Spring' OR"
-                                  f" SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In') "
-                                  f"AND SP.Link = '{player_string}'"
+                                  f" SG.Tournament = 'LEC 2022 Spring' OR SG.Tournament = 'LCS 2022 Lock In' OR"
+                                  f" SG.Tournament = 'LCS 2022 Spring Playoffs' OR"
+                                  f" SG.Tournament = 'LEC 2022 Spring Playoffs') AND SP.Link = '{player_string}'"
                             )
 
     if is_team:
@@ -205,8 +206,9 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
                                    "SG.RiotPlatformGameId, SG.RiotGameId",
                             where=f"(SG.DateTime_UTC >= '{str(date)}' AND SG.DateTime_UTC <= "
                                   f"'{str(date + dt.timedelta(hours=24*5))}') AND "
-                                  f"(SG.Tournament = 'LCS 2022 Spring' OR SG.Tournament = 'LEC 2022 Spring' OR "
-                                  f"SG.Tournament = 'LCS 2022 Lock In') AND (SG.Team1 = '{player_string}' "
+                                  f"(SG.Tournament = 'LCS 2022 Spring' OR SG.Tournament = 'LEC 2022 Spring' OR"
+                                  f" SG.Tournament = 'LCS 2022 Lock In' OR SG.Tournament = 'LCS 2022 Spring Playoffs'"
+                                  f" OR SG.Tournament = 'LEC 2022 Spring Playoffs') AND (SG.Team1 = '{player_string}' "
                                   f"OR SG.Team2 = '{player_string}')"
                             )
 
