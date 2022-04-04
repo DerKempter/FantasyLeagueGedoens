@@ -180,7 +180,7 @@ def update_single_player_points_for_week(player_string: str, date_string: str, w
 
     if not is_team:
         response = site.api('cargoquery',
-                            limit="3",
+                            limit="max",
                             tables="ScoreboardGames=SG, ScoreboardPlayers=SP",
                             join_on="SG.GameId=SP.GameId",
                             fields="SG.Tournament, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.Winner, "
